@@ -25,7 +25,7 @@ public class SeriesOfStoreController {
         seriesOfStoreService.add(request, storeId, seriesId);
 
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Series created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body("seriesOfStore created successfully");
 
     }
 
