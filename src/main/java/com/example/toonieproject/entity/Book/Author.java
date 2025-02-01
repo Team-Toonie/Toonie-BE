@@ -1,4 +1,4 @@
-package com.example.toonieproject.entity.Books;
+package com.example.toonieproject.entity.Book;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,6 +14,7 @@ public class Author {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "authors_id")
     private Long authorId;
 
     @Column

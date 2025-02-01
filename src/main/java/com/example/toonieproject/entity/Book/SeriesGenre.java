@@ -1,16 +1,16 @@
-package com.example.toonieproject.entity.Books;
+package com.example.toonieproject.entity.Book;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "series_authors")
+@Table(name = "series_genres")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class SeriesAuthor {
+public class SeriesGenre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +21,6 @@ public class SeriesAuthor {
     private Series series;
 
     @ManyToOne
-    @JoinColumn(name = "author_id")
-    private Author author;
+    @JoinColumn(name = "genre_name")
+    private Genre genre;
 }

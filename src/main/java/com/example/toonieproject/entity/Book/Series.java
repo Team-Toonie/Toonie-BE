@@ -1,4 +1,4 @@
-package com.example.toonieproject.entity.Books;
+package com.example.toonieproject.entity.Book;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,6 +15,7 @@ public class Series {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "series_id")
     private Long seriesId;
 
     @Column(nullable = false)

@@ -1,13 +1,11 @@
-package com.example.toonieproject.service;
+package com.example.toonieproject.service.Book;
 
 import com.example.toonieproject.dto.Series.AddSeriesRequest;
 import com.example.toonieproject.dto.Series.AuthorDTO;
-import com.example.toonieproject.entity.Books.*;
+import com.example.toonieproject.entity.Book.*;
 import com.example.toonieproject.repository.Book.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -21,11 +19,12 @@ public class SeriesService {
 
 
 
-    public void addSeries(AddSeriesRequest request) {
+    public void add(AddSeriesRequest request) {
 
         // 1. 시리즈 저장
         Series series = new Series();
         series.setTitle(request.getTitle());
+            // 이미지 링크로 변환 후 저장
         series.setImage(request.getImage());
         series.setPublisher(request.getPublisher());
 

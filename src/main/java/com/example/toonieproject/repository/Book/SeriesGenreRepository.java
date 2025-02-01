@@ -1,6 +1,6 @@
 package com.example.toonieproject.repository.Book;
 
-import com.example.toonieproject.entity.Books.SeriesGenre;
+import com.example.toonieproject.entity.Book.SeriesGenre;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

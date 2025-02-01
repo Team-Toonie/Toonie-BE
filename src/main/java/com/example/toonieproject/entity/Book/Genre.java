@@ -1,4 +1,4 @@
-package com.example.toonieproject.entity.Books;
+package com.example.toonieproject.entity.Book;
 
 import jakarta.persistence.*;
 import lombok.*;
