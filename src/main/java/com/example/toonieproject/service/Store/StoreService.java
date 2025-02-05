@@ -1,0 +1,71 @@
+package com.example.toonieproject.service.Store;
+
+
+import com.example.toonieproject.dto.Store.AddStoreRequest;
+import com.example.toonieproject.entity.Store.AddressOfStore;
+import com.example.toonieproject.entity.Store.Store;
+import com.example.toonieproject.entity.User.Owner;
+import com.example.toonieproject.repository.Store.AddressOfStoreRepository;
+import com.example.toonieproject.repository.Store.StoreRepository;
+import com.example.toonieproject.repository.User.OwnerRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+
+@RequiredArgsConstructor
+@Service
+@Transactional
+public class StoreService {
+
+    private final StoreRepository storeRepository;
+    private final AddressOfStoreRepository addressOfStoreRepository;
+    private final OwnerRepository ownerRepository;
+
+
+    public Store add(AddStoreRequest request) {
+
+        // 1. 가게 정보 저장
+        Store store = new Store();
+
+        store.setName(request.getName());
+        Owner owner = ownerRepository.findById(request.getOwnerId())
+                .orElseThrow(() -> new EntityNotFoundException("Owner not found with id: " + request.getOwnerId()));
+        store.setOwner(owner);
+        store.setRepresentUrl(request.getRepresentUrl());
+        store.setPhoneNumber(request.getPhoneNumber());
+        store.setIsOpen(request.getIsOpen());
+        store.setInfo(request.getInfo());
+
+        store = storeRepository.saveAndFlush(store); // 트랜잭션 내에서 즉시 DB 반영
+
+        // 2. 가게 주소 정보 저장
+
+        AddressOfStore addressOfStore = new AddressOfStore();
+
+        addressOfStore.setStore(store);
+        addressOfStore.setAddress(request.getAddress());
+        addressOfStore.setDetailedAddress(request.getDetailedAddress());
+        addressOfStore.setLat(request.getLat());
+        addressOfStore.setLng(request.getLng());
+
+        addressOfStoreRepository.save(addressOfStore);
+
+
+        return store;
+    }
+
+    public void addAddress(AddStoreRequest request) {
+
+    }
+
+
+
+
+
+
+
+
+
+}

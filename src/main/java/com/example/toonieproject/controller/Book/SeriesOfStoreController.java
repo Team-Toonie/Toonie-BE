@@ -1,8 +1,8 @@
-package com.example.toonieproject.controller.Store;
+package com.example.toonieproject.controller.Book;
 
 
 import com.example.toonieproject.dto.Series.AddSeriesOfStoreRequest;
-import com.example.toonieproject.service.Store.SeriesOfStoreService;
+import com.example.toonieproject.service.Book.SeriesOfStoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

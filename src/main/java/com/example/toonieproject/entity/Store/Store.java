@@ -33,5 +33,8 @@ public class Store {
 
     @Column(name = "is_open", nullable = false)
     private Boolean isOpen = true; // 상태 (true = 영업 중, false = 폐업)
+
+    @Column(name = "info", nullable = true)
+    private String info;
 }
 

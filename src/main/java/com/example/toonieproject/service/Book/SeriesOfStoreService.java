@@ -1,4 +1,4 @@
-package com.example.toonieproject.service.Store;
+package com.example.toonieproject.service.Book;
 
 import com.example.toonieproject.dto.Series.AddSeriesOfStoreRequest;
 import com.example.toonieproject.entity.Book.Series;
