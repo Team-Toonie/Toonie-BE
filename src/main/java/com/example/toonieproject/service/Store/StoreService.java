@@ -2,6 +2,7 @@ package com.example.toonieproject.service.Store;
 
 
 import com.example.toonieproject.dto.Store.AddStoreRequest;
+import com.example.toonieproject.dto.Store.OwnerStoresResponse;
 import com.example.toonieproject.entity.Store.AddressOfStore;
 import com.example.toonieproject.entity.Store.Store;
 import com.example.toonieproject.entity.User.Owner;
@@ -12,6 +13,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @RequiredArgsConstructor
@@ -38,6 +42,9 @@ public class StoreService {
         store.setIsOpen(request.getIsOpen());
         store.setInfo(request.getInfo());
 
+        // 이미지 링크로 변환 후 저장
+        store.setImage(request.getImage());
+
         store = storeRepository.saveAndFlush(store); // 트랜잭션 내에서 즉시 DB 반영
 
         // 2. 가게 주소 정보 저장
@@ -56,8 +63,24 @@ public class StoreService {
         return store;
     }
 
-    public void addAddress(AddStoreRequest request) {
+    public List<OwnerStoresResponse> findByOwnerId(Long ownerId) {
 
+        // ownerId에 해당하는 가게 리스트 조회
+        List<Store> stores = storeRepository.findByOwner_Id(ownerId);
+
+        List<OwnerStoresResponse> responseList = new ArrayList<>();
+
+
+        for (Store store : stores) {
+            // storeId로 AddressOfStore 조회
+            AddressOfStore addressOfStore = addressOfStoreRepository.findById(store.getId()).orElse(null);
+            String address = (addressOfStore != null) ? addressOfStore.getAddress() : "주소 없음";
+
+            // DTO 생성 후 리스트에 추가
+            responseList.add(new OwnerStoresResponse(store.getId(), store.getName(), address));
+        }
+
+        return responseList;
     }
 
 
