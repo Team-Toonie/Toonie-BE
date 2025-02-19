@@ -3,6 +3,7 @@ package com.example.toonieproject.service.Store;
 
 import com.example.toonieproject.dto.Store.AddStoreRequest;
 import com.example.toonieproject.dto.Store.OwnerStoresResponse;
+import com.example.toonieproject.dto.Store.StoreViewResponse;
 import com.example.toonieproject.entity.Store.AddressOfStore;
 import com.example.toonieproject.entity.Store.Store;
 import com.example.toonieproject.entity.User.Owner;
@@ -81,6 +82,29 @@ public class StoreService {
         }
 
         return responseList;
+    }
+
+
+    public StoreViewResponse findByStoreId(Long storeId) {
+        Store store = storeRepository.findById(storeId).orElseThrow();
+        AddressOfStore address = addressOfStoreRepository.findById(storeId).orElseThrow();
+
+        StoreViewResponse response = StoreViewResponse.builder()
+                .storeId(store.getId())
+                .storeName(store.getName())
+                .phoneNumber(store.getPhoneNumber())
+                .representUrl(store.getRepresentUrl())
+                .isOpen(store.getIsOpen())
+                .info(store.getInfo())
+                .image(store.getImage())
+                .address(address.getAddress())
+                .detailedAddress(address.getDetailedAddress())
+                .lat(address.getLat())
+                .lng(address.getLng())
+                .build();
+
+        return response;
+
     }
 
 

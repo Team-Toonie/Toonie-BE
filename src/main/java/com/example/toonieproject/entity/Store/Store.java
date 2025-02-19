@@ -40,5 +40,11 @@ public class Store {
     @Column(name = "image")
     private String image;
 
+
+
+    @OneToOne(mappedBy = "store", fetch = FetchType.LAZY) //cascade = CascadeType.ALL(주소 테이블에 자동저장) 삭제(기존 로직 유지를 위해)
+    private AddressOfStore address; // 주소 정보
+
+
 }
 
