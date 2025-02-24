@@ -70,6 +70,16 @@ public class StoreController {
         return ResponseEntity.ok(stores);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<StoreSearchResponse>> searchStores(
+            @RequestParam String query
+    ) {
+
+        List<StoreSearchResponse> stores = storeService.searchStores(query);
+
+        return ResponseEntity.ok(stores);
+    }
+
 
 
 }

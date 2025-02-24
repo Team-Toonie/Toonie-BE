@@ -3,6 +3,7 @@ package com.example.toonieproject.service.Store;
 
 import com.example.toonieproject.dto.Store.AddStoreRequest;
 import com.example.toonieproject.dto.Store.OwnerStoresResponse;
+import com.example.toonieproject.dto.Store.StoreSearchResponse;
 import com.example.toonieproject.dto.Store.StoreViewResponse;
 import com.example.toonieproject.entity.Store.AddressOfStore;
 import com.example.toonieproject.entity.Store.Store;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final AddressOfStoreRepository addressOfStoreRepository;
     private final OwnerRepository ownerRepository;
+    private final StoreTrie storeTrie;
 
 
     public Store add(AddStoreRequest request) {
@@ -59,6 +63,9 @@ public class StoreService {
         addressOfStore.setLng(request.getLng());
 
         addressOfStoreRepository.save(addressOfStore);
+
+        // Trie에 추가
+        storeTrie.insertStore(store);
 
 
         return store;
@@ -107,12 +114,17 @@ public class StoreService {
 
     }
 
+    public List<StoreSearchResponse> searchStores(String query) {
 
+        List<Store> stores = storeTrie.searchStore(query);
 
-
-
-
-
-
+        return stores.stream()
+                .map(store -> StoreSearchResponse.builder()
+                        .storeId(store.getId())
+                        .storeName(store.getName()) // 가게 이름
+                        .location(store.getAddressInfo().getAddress()) // 주소
+                        .build())
+                .collect(Collectors.toList());
+    }
 
 }

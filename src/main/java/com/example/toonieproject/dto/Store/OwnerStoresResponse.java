@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class OwnerStoresResponse {
 
-    private Long id;
+    private Long storeId;
     private String storeName;
     private String address;
 

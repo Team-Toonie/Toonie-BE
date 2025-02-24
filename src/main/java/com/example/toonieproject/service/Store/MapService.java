@@ -30,9 +30,9 @@ public class MapService {
                 .map(store -> new StoreNearbyResponse(
                         store.getId(),
                         store.getName(),
-                        store.getAddress().getAddress(),
-                        store.getAddress().getLat(),
-                        store.getAddress().getLng()
+                        store.getAddressInfo().getAddress(),
+                        store.getAddressInfo().getLat(),
+                        store.getAddressInfo().getLng()
                 ))
                 .collect(Collectors.toList());
 
@@ -42,7 +42,7 @@ public class MapService {
     public List<StoreMapResponse> findStoresInBounds(BigDecimal minLat, BigDecimal maxLat, BigDecimal minLng, BigDecimal maxLng) {
         List<Store> stores = storeRepository.findStoresInBounds(minLat, maxLat, minLng, maxLng);
         return stores.stream()
-                .map(store -> new StoreMapResponse(store.getId(), store.getAddress().getLat(), store.getAddress().getLng()))
+                .map(store -> new StoreMapResponse(store.getId(), store.getAddressInfo().getLat(), store.getAddressInfo().getLng()))
                 .collect(Collectors.toList());
     }
 

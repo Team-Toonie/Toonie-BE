@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class StoreNearbyResponse {
 
-    private Long id;
+    private Long storeId;
     private String storeName;
     private String address;
     private BigDecimal lat;
