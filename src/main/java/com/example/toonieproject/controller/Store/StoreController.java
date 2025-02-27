@@ -16,7 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/stores")
-//@CrossOrigin(origins = "http://localhost:5173")
 public class StoreController {
 
     private final StoreService storeService;
@@ -39,7 +38,7 @@ public class StoreController {
     @GetMapping("/owners/{ownerId}")
     public ResponseEntity<List<OwnerStoresResponse>> findByOwnerId(@PathVariable long ownerId) {
 
-        return ResponseEntity.ok(storeService.findByOwnerId(ownerId));
+        return ResponseEntity.ok(storeService.findByUserId(ownerId));
     }
 
     @GetMapping("/{storeId}")
