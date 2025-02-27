@@ -36,10 +36,11 @@ public class StoreController {
 
     }
 
-    @GetMapping("/owners/{ownerId}")
-    public ResponseEntity<List<OwnerStoresResponse>> findByOwnerId(@PathVariable long ownerId) {
+    @GetMapping("/owners/{userId}")
+    public ResponseEntity<List<OwnerStoresResponse>> findByOwnerId(@PathVariable long userId) {
 
-        return ResponseEntity.ok(storeService.findByOwnerId(ownerId));
+        // user role이 owner인지 확인
+        return ResponseEntity.ok(storeService.findByOwnerId(userId));
     }
 
     @GetMapping("/{storeId}")

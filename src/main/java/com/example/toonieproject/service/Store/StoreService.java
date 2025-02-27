@@ -7,10 +7,10 @@ import com.example.toonieproject.dto.Store.StoreSearchResponse;
 import com.example.toonieproject.dto.Store.StoreViewResponse;
 import com.example.toonieproject.entity.Store.AddressOfStore;
 import com.example.toonieproject.entity.Store.Store;
-import com.example.toonieproject.entity.User.Owner;
+import com.example.toonieproject.entity.User.User;
 import com.example.toonieproject.repository.Store.AddressOfStoreRepository;
 import com.example.toonieproject.repository.Store.StoreRepository;
-import com.example.toonieproject.repository.User.OwnerRepository;
+import com.example.toonieproject.repository.User.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -29,7 +28,7 @@ public class StoreService {
 
     private final StoreRepository storeRepository;
     private final AddressOfStoreRepository addressOfStoreRepository;
-    private final OwnerRepository ownerRepository;
+    private final UserRepository ownerRepository;
     private final StoreTrie storeTrie;
 
 
@@ -39,7 +38,7 @@ public class StoreService {
         Store store = new Store();
 
         store.setName(request.getName());
-        Owner owner = ownerRepository.findById(request.getOwnerId())
+        User owner = ownerRepository.findById(request.getOwnerId())
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found with id: " + request.getOwnerId()));
         store.setOwner(owner);
         store.setRepresentUrl(request.getRepresentUrl());
@@ -64,17 +63,18 @@ public class StoreService {
 
         addressOfStoreRepository.save(addressOfStore);
 
-        // Trie에 추가
+
+        // 3. Trie에 추가
         storeTrie.insertStore(store);
 
 
         return store;
     }
 
-    public List<OwnerStoresResponse> findByOwnerId(Long ownerId) {
+    public List<OwnerStoresResponse> findByOwnerId(Long userId) {
 
         // ownerId에 해당하는 가게 리스트 조회
-        List<Store> stores = storeRepository.findByOwner_Id(ownerId);
+        List<Store> stores = storeRepository.findByOwner_Id(userId);
 
         List<OwnerStoresResponse> responseList = new ArrayList<>();
 

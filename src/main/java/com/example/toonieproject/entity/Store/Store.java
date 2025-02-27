@@ -1,6 +1,6 @@
 package com.example.toonieproject.entity.Store;
 
-import com.example.toonieproject.entity.User.Owner;
+import com.example.toonieproject.entity.User.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,7 +26,7 @@ public class Store {
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
-    private Owner owner; // 소유자 (외래키)
+    private User owner; // 소유자 (외래키)
 
     @Column(name = "represent_url", length = 255)
     private String representUrl; // 대표 URL

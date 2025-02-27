@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +23,13 @@ public class StoreTrie {
     private final Node rootNode = new Node();
 
     // 서버 실행 시 자동으로 Trie 초기화
-    @PostConstruct
-    public void initTrie() {
-        List<Store> stores = storeRepository.findAll();
-        for (Store store : stores) {
-            insertStore(store);
-        }
-    }
+//    @PostConstruct
+//    public void initTrie() {
+//        List<Store> stores = storeRepository.findAll();
+//        for (Store store : stores) {
+//            insertStore(store);
+//        }
+//    }
 
     // Trie 가게 추가 (초성 포함)
     @Transactional
