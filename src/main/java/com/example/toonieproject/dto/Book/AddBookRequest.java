@@ -14,7 +14,7 @@ public class AddBookRequest {
 
     private Long storeId;
 
-    private Double rentalPrice;
+    private Integer rentalPrice;
 
     private Integer seriesNum;
 

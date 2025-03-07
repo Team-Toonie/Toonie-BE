@@ -27,7 +27,7 @@ public class Book {
     private Store store; // 가게 (외래키)
 
     @Column(name = "rental_price", nullable = false)
-    private Double rentalPrice; // 대여 가격
+    private Integer rentalPrice; // 대여 가격
 
     @Column(name = "series_num", nullable = false)
     private Integer seriesNum; // 시리즈 내 번호

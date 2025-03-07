@@ -2,10 +2,13 @@ package com.example.toonieproject.service.Book;
 
 import com.example.toonieproject.dto.Series.AddSeriesRequest;
 import com.example.toonieproject.dto.Series.AuthorDTO;
+import com.example.toonieproject.dto.Series.SeriesDetailResponse;
 import com.example.toonieproject.entity.Book.*;
 import com.example.toonieproject.repository.Book.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -70,5 +73,32 @@ public class SeriesService {
     }
 
 
+    public SeriesDetailResponse getSeriesDetails(Long seriesId) {
 
+        // 1. 시리즈
+        Series series = seriesRepository.findById(seriesId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 시리즈가 존재하지 않습니다."));
+
+        // 2.1 작가 - 시리즈 ID로 SeriesAuthor 테이블에서 authorId 리스트 가져오기
+        List<Long> authorIds = seriesAuthorRepository.findAuthorIdsBySeriesId(seriesId);
+        List<Author> authors = authorRepository.findAllById(authorIds);
+        List<AuthorDTO> authorDTOs = authors.stream()
+                .map(author -> new AuthorDTO(author.getAuthorId(), author.getName()))
+                .toList();
+
+        // 3. 장르
+        List<String> genreNames = seriesGenreRepository.findGenreNamesBySeriesId(seriesId);
+
+
+        return new SeriesDetailResponse(
+                series.getSeriesId(),
+                series.getTitle(),
+                authorDTOs,
+                genreNames,
+                series.getImage(),
+                series.getPublisher()
+        );
+
+
+    }
 }

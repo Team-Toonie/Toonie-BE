@@ -41,4 +41,21 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
                                    @Param("minLng") BigDecimal minLng,
                                    @Param("maxLng") BigDecimal maxLng);
 
+
+    @Query(value = """
+        SELECT s.store_id, s.name, a.address, a.lat, a.lng,
+               (6371 * acos(cos(radians(:lat)) * cos(radians(a.lat)) 
+               * cos(radians(a.lng) - radians(:lon)) 
+               + sin(radians(:lat)) * sin(radians(a.lat))))
+               AS distance 
+        FROM store s
+        INNER JOIN address_store a ON s.store_id = a.store_id
+        INNER JOIN series_of_store sos ON s.store_id = sos.store_id
+        WHERE sos.series_id = :seriesId
+        ORDER BY distance ASC
+        """, nativeQuery = true)
+    List<Object[]> findStoresBySeriesIdWithDistance(@Param("seriesId") Long seriesId,
+                                                    @Param("lat") double lat,
+                                                    @Param("lon") double lon);
+
 }

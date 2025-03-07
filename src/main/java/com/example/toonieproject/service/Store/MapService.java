@@ -1,10 +1,13 @@
 package com.example.toonieproject.service.Store;
 
 
+import com.example.toonieproject.dto.Store.StoreFindBySeriesResponse;
 import com.example.toonieproject.dto.Store.StoreMapResponse;
 import com.example.toonieproject.dto.Store.StoreNearbyResponse;
 import com.example.toonieproject.entity.Store.Store;
+import com.example.toonieproject.repository.Book.SeriesRepository;
 import com.example.toonieproject.repository.Store.StoreRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class MapService {
     private final StoreRepository storeRepository;
+    private final SeriesRepository seriesRepository;
 
     public List<StoreNearbyResponse> findNearbyStores(BigDecimal lat, BigDecimal lng, int page) {
 
@@ -47,4 +51,25 @@ public class MapService {
     }
 
 
+    public List<StoreFindBySeriesResponse> getStoresBySeriesId(Long seriesId, double lat, double lon) {
+
+        // 1. 시리즈 존재 여부 확인
+        if (!seriesRepository.existsById(seriesId)) {
+            throw new EntityNotFoundException("Series with ID " + seriesId + " not found.");
+        }
+
+        // 2. 가게 목록 조회 (쿼리 결과가 Object[] 배열 형태로 반환됨)
+        List<Object[]> results = storeRepository.findStoresBySeriesIdWithDistance(seriesId, lat, lon);
+
+        // 3. DTO로 변환
+        return results.stream().map(result -> new StoreFindBySeriesResponse(
+                ((Number) result[0]).longValue(),  // store_id
+                (String) result[1],               // store_name
+                (String) result[2],               // address
+                (BigDecimal) result[3],           // lat
+                (BigDecimal) result[4],           // lng
+                ((Number) result[5]).doubleValue() // distance
+        )).toList();
+
+    }
 }

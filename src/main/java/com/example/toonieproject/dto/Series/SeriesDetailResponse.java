@@ -7,16 +7,17 @@ import lombok.Setter;
 
 import java.util.List;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-public class AddSeriesRequest {
+@NoArgsConstructor
+@AllArgsConstructor
+public class SeriesDetailResponse {
 
+    private Long id;
     private String title;
+    private List<AuthorDTO> author;
+    private List<String> genre;
     private String image;
     private String publisher;
-    private List<AuthorDTO> authors;
-    private List<String> genres;
 
 }
