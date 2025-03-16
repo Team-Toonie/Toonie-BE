@@ -1,6 +1,6 @@
 package com.example.toonieproject.entity.Store;
 
-import com.example.toonieproject.entity.User.User;
+import com.example.toonieproject.entity.Auth.User;
 import jakarta.persistence.*;
 import lombok.*;
 

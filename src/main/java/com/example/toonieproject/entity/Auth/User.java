@@ -1,4 +1,4 @@
-package com.example.toonieproject.entity.User;
+package com.example.toonieproject.entity.Auth;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,7 +28,7 @@ public class User {
     private String phoneNumber; // 전화번호
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(length = 10)
     private Role role; // 역할 (OWNER, CUSTOMER)
 
     public enum Role {
