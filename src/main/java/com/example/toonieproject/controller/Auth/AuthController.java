@@ -28,7 +28,7 @@ public class AuthController {
     }
 
     @PostMapping("/callback/google")
-    public ResponseEntity<?> googleAuthCallback(@RequestParam GoogleAuthRequest request) {
+    public ResponseEntity<?> googleAuthCallback(@RequestBody GoogleAuthRequest request) {
 
         JwtToken jwtToken = authService.loginWithGoogle(request.getCode(), request.getCodeVerifier());
         return ResponseEntity.ok(jwtToken);

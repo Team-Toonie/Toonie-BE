@@ -21,11 +21,11 @@ public class JwtTokenProvider {
         Date expiry = new Date(now.getTime() + expiredAt.toMillis());
 
         return Jwts.builder()
-                .setSubject(String.valueOf(user.getId())) // 사용자 ID를 subject로
+                .setSubject(String.valueOf(user.getId()))
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .claim("email", user.getEmail())
-                .claim("role", user.getRole().name())
+                .claim("role", user.getRole())
                 .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecretKey())
                 .compact();
 

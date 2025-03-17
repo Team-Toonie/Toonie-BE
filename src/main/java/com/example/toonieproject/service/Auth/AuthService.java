@@ -3,6 +3,7 @@ package com.example.toonieproject.service.Auth;
 
 import com.example.toonieproject.config.Auth.GoogleOAuthProperties;
 import com.example.toonieproject.config.Jwt.JwtTokenProvider;
+import com.example.toonieproject.dto.Auth.GoogleTokenResponse;
 import com.example.toonieproject.dto.Auth.JwtToken;
 import com.example.toonieproject.dto.Auth.RegisterRequest;
 import com.example.toonieproject.entity.Auth.RefreshToken;
@@ -12,8 +13,12 @@ import com.example.toonieproject.repository.Auth.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,21 +31,28 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final GoogleOAuthProperties googleOAuthProperties;
+    private final RestTemplate restTemplate;
+
 
 
     public JwtToken loginWithGoogle(String code, String codeVerifier) {
 
         // 1. 인가 코드 -> 구글 토큰 요청
-        Map<String, String> tokenResponse = getTokenFromGoogle(code, codeVerifier);
+        GoogleTokenResponse tokenResponse = getTokenFromGoogle(URLDecoder.decode(code, StandardCharsets.UTF_8), codeVerifier);
+        String googleAccessToken = tokenResponse.getAccessToken();
+        String googleRefreshToken = tokenResponse.getRefreshToken();
 
-        String googleAccessToken = tokenResponse.get("access_token");
-        String googleRefreshToken = tokenResponse.get("refresh_token");
+        System.out.println("googleAccessToken" + googleAccessToken);
+
+        System.out.println("googleRefreshToken" + googleRefreshToken);
 
 
         // 2. 구글 액세스 토큰 -> 사용자 정보 조회
         Map<String, Object> userInfo = getGoogleUserInfo(googleAccessToken);
         String email = (String) userInfo.get("email");
         String name = (String) userInfo.get("name");
+
+        System.out.println(User.Role.GUEST);
 
 
         // 3. 사용자 정보 저장 or 조회
@@ -49,7 +61,7 @@ public class AuthService {
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setName(name);
-                    //newUser.setRole(null);
+                    newUser.setRole(User.Role.GUEST);
                     return userRepository.save(newUser);
                 });
 
@@ -62,36 +74,46 @@ public class AuthService {
         String jwtAccessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
         String jwtRefreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
 
+
+
         return new JwtToken(jwtAccessToken, jwtRefreshToken);
     }
 
-    private Map<String, String> getTokenFromGoogle(String code, String codeVerifier) {
-        RestTemplate restTemplate = new RestTemplate();
+    private GoogleTokenResponse getTokenFromGoogle(String code, String codeVerifier) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        Map<String, String> params = new HashMap<>();
-        params.put("client_id", googleOAuthProperties.getClientId());
-        params.put("client_secret", googleOAuthProperties.getClientSecret());
-        params.put("code", code);
-        params.put("code_verifier", codeVerifier);
-        params.put("grant_type", "authorization_code");
-        params.put("redirect_uri", googleOAuthProperties.getRedirectUri());
+        // test
+        System.out.println("==== Google Token Request ====");
+        System.out.println("client_id: " + googleOAuthProperties.getClientId());
+        System.out.println("client_secret: " + googleOAuthProperties.getClientSecret());
+        System.out.println("code: " + code);
+        System.out.println("code_verifier: " + codeVerifier);
+        System.out.println("redirect_uri: " + googleOAuthProperties.getRedirectUri());
+        System.out.println("================================");
 
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(params, headers);
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", googleOAuthProperties.getClientId());
+        body.add("client_secret", googleOAuthProperties.getClientSecret());
+        body.add("code", code);
+        body.add("code_verifier", codeVerifier);
+        body.add("grant_type", "authorization_code");
+        body.add("redirect_uri", googleOAuthProperties.getRedirectUri());
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<GoogleTokenResponse> response = restTemplate.postForEntity(
                 "https://oauth2.googleapis.com/token",
                 request,
-                Map.class
+                GoogleTokenResponse.class
         );
 
         return response.getBody();
     }
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
-        RestTemplate restTemplate = new RestTemplate();
+        //RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
@@ -123,6 +145,7 @@ public class AuthService {
         // 새 accessToken 발급 (role 정보 반영)
         String newAccessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
         String newRefreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
+
 
         refreshTokenRepository.save(new RefreshToken(user.getId(), newRefreshToken));
 
