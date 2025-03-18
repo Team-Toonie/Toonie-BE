@@ -3,6 +3,7 @@ package com.example.toonieproject.controller.Auth;
 
 import com.example.toonieproject.dto.Auth.GoogleAuthRequest;
 import com.example.toonieproject.dto.Auth.JwtToken;
+import com.example.toonieproject.dto.Auth.RefreshTokenRequest;
 import com.example.toonieproject.dto.Auth.RegisterRequest;
 import com.example.toonieproject.service.Auth.AuthService;
 import com.example.toonieproject.service.Auth.GoogleOAuthService;
@@ -14,7 +15,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/auth") // 로그인 전 호출 (인증X)
+@RequestMapping("/auth")
 public class AuthController {
 
     private final GoogleOAuthService googleOAuthService;
@@ -35,12 +36,27 @@ public class AuthController {
 
     }
 
-    @PostMapping("/register")
+    @PostMapping("/register") // 전화번호 인증 후 전화번호 저장
     public ResponseEntity<JwtToken> registerUser(@RequestBody RegisterRequest request,
-                                                 @RequestHeader("Authorization") String token) {
-        JwtToken jwtToken = authService.registerUser(request, token);
+                                                 @RequestHeader("Authorization") String bearerToken) {
+        JwtToken jwtToken = authService.registerUser(request, bearerToken);
         return ResponseEntity.ok(jwtToken);
     }
+
+    @PostMapping("token/refresh")
+    public ResponseEntity<Map<String, String>> refreshAccessToken(@RequestBody RefreshTokenRequest request) {
+
+        String newAccessToken = authService.refreshAccessToken(request.getRefreshToken());
+
+        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String bearerToken) {
+        authService.logout(bearerToken);
+        return ResponseEntity.ok("로그아웃 되었습니다.");
+    }
+
 
 
 

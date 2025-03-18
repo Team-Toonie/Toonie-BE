@@ -24,6 +24,7 @@ public class UserController {
         String accessToken = token.replace("Bearer ", "");
         Long userId = jwtTokenProvider.getUserId(accessToken);
         User user = userService.findById(userId);
+
         return ResponseEntity.ok(user);
     }
 

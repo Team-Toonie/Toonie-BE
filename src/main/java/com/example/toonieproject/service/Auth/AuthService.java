@@ -75,7 +75,6 @@ public class AuthService {
         String jwtRefreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
 
 
-
         return new JwtToken(jwtAccessToken, jwtRefreshToken);
     }
 
@@ -113,7 +112,6 @@ public class AuthService {
     }
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
-        //RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
@@ -153,4 +151,30 @@ public class AuthService {
     }
 
 
+    public String refreshAccessToken(String refreshToken) {
+        // 1. JWT 유효성 검사
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+        }
+
+        // 2. DB에 저장된 refreshToken과 비교
+        RefreshToken savedToken = refreshTokenRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new IllegalArgumentException("저장된 리프레시 토큰이 없습니다."));
+
+        // 3. 해당 userId로 사용자 조회
+        User user = userRepository.findById(savedToken.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+
+        // 4. 새로운 accessToken 발급
+        return jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
+    }
+
+
+    public void logout(String bearerToken) {
+        String accessToken = bearerToken.replace("Bearer ", "");
+        Long userId = jwtTokenProvider.getUserId(accessToken);
+
+        // 리프레시 토큰 삭제
+        refreshTokenRepository.deleteByUserId(userId);
+    }
 }
