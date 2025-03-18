@@ -32,11 +32,16 @@ public class WebOAuthSecurityConfig {
                 .addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
-                        // 인증 없이 접근 가능한 엔드포인트
-                        .requestMatchers("/auth/login/google","/auth/callback/google", "/auth/token/refresh").permitAll()
                         // 인증 필요
-                        .requestMatchers("/user/**").authenticated()
-
+                        .requestMatchers("/user/**",
+                                "auth/**"
+                                ).authenticated()
+                        // 인증 없이 접근 가능한 엔드포인트
+                        .requestMatchers("/auth/login/google",
+                                "/auth/callback/google",
+                                "/auth/token/refresh",
+                                "/auth/register"
+                        ).permitAll()
                         .anyRequest().permitAll()
                 )
 
