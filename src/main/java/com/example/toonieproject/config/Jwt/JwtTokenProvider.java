@@ -50,11 +50,22 @@ public class JwtTokenProvider {
 
     // JWT에서 사용자 ID추출
     public Long getUserId(String token) {
-        Claims claims = Jwts.parser()
+        return Long.valueOf(getClaims(token).getSubject());
+    }
+
+    public String getUserRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    public String getUserEmail(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parser()
                 .setSigningKey(jwtProperties.getSecretKey())
                 .parseClaimsJws(token)
                 .getBody();
-        return Long.valueOf(claims.getSubject());
     }
 
 }

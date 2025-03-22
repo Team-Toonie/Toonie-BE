@@ -32,7 +32,7 @@ public class User {
     private Role role; // 역할 (OWNER, CUSTOMER)
 
     public enum Role {
-        OWNER, CUSTOMER, GUEST
+        OWNER, CUSTOMER
     }
 
 }

@@ -8,6 +8,7 @@ import com.example.toonieproject.service.Store.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ public class StoreController {
     private final StoreService storeService;
     private final MapService mapService;
 
+    @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/add")
     public ResponseEntity<String> addStore(@RequestBody AddStoreRequest request) {
 
@@ -35,6 +37,7 @@ public class StoreController {
 
     }
 
+    @PreAuthorize("hasRole('OWNER')")
     @GetMapping("/owners/{ownerId}")
     public ResponseEntity<List<OwnerStoresResponse>> findByOwnerId(@PathVariable long ownerId) {
 

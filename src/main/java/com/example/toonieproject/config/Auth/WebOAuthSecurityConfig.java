@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -16,6 +17,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class WebOAuthSecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -32,11 +34,16 @@ public class WebOAuthSecurityConfig {
                 .addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
-                        // 인증 없이 접근 가능한 엔드포인트
-                        .requestMatchers("/auth/login/google","/auth/callback/google", "/auth/token/refresh").permitAll()
                         // 인증 필요
-                        .requestMatchers("/user/**").authenticated()
-
+                        .requestMatchers("/user/**",
+                                "auth/logout"
+                                ).authenticated()
+                        // 인증 없이 접근 가능한 엔드포인트
+                        .requestMatchers("/auth/login/google",
+                                "/auth/callback/google",
+                                "/auth/token/refresh",
+                                "/auth/register"
+                        ).permitAll()
                         .anyRequest().permitAll()
                 )
 
