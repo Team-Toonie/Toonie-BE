@@ -1,6 +1,7 @@
 package com.example.toonieproject.service.Book;
 
 import com.example.toonieproject.dto.Series.AddSeriesOfStoreRequest;
+import com.example.toonieproject.dto.Series.SeriesOfStoreDetailResponse;
 import com.example.toonieproject.entity.Book.Series;
 import com.example.toonieproject.entity.Book.SeriesOfStore;
 import com.example.toonieproject.entity.Book.SeriesOfStoreId;
@@ -44,6 +45,23 @@ public class SeriesOfStoreService {
         seriesOfStoreRepository.save(seriesOfStore);
 
 
+    }
+
+    public SeriesOfStoreDetailResponse getSeriesOfStoreDetails(long storeId, long seriesId){
+
+
+        SeriesOfStoreId compositeId = new SeriesOfStoreId(seriesId, storeId);
+        SeriesOfStore result = seriesOfStoreRepository.findById(compositeId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "SeriesOfStore not found with storeId " + storeId + " and seriesId " + seriesId
+                ));
+
+        return SeriesOfStoreDetailResponse.builder()
+                .seriesId(result.getId().getSeriesId())
+                .storeId(result.getId().getStoreId())
+                .maxOfRentalPeriod(result.getMaxOfRentalPeriod())
+                .volume(result.getVolume())
+                .build();
     }
 
 

@@ -27,6 +27,9 @@ public class User {
     @Column(name = "phone_number", length = 15)
     private String phoneNumber; // 전화번호
 
+    @Column(name = "nickname", nullable = false, unique = true)
+    private String nickname;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 10)
     private Role role; // 역할 (OWNER, CUSTOMER)

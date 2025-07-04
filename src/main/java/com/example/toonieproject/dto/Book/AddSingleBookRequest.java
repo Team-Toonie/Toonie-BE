@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data // getter, setter, toString, equals, hashCode 자동 생성.
-public class AddBookRequest {
+public class AddSingleBookRequest {
 
     private Long seriesId;
 
@@ -16,7 +16,7 @@ public class AddBookRequest {
 
     private Integer rentalPrice;
 
-    private Integer[] seriesNum;
+    private Integer seriesNum;
 
     private Boolean isRentable;
 

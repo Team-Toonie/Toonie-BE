@@ -11,4 +11,5 @@ public class RegisterUserRequest {
     private String name;
     private String phoneNumber;
     private User.Role role; // OWNER 또는 CUSTOMER
+    private String nickname;
 }

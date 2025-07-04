@@ -6,6 +6,7 @@ import com.example.toonieproject.service.Auth.AuthService;
 import com.example.toonieproject.service.Auth.GoogleOAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -39,6 +40,7 @@ public class AuthController {
         return ResponseEntity.ok(tokenResponse);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("token/refresh")
     public ResponseEntity<RefreshAccessTokenResponse> refreshAccessToken(@RequestBody RefreshAccessTokenRequest request) {
 
@@ -46,6 +48,7 @@ public class AuthController {
         return ResponseEntity.ok(refreshAccessTokenResponse);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String bearerToken) {
 

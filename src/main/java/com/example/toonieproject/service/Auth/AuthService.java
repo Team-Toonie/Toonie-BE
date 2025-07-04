@@ -81,6 +81,7 @@ public class AuthService {
         user.setName(request.getName());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setRole(request.getRole());
+        user.setNickname(request.getNickname());
 
         // 2. 저장
         userRepository.save(user);
