@@ -51,8 +51,4 @@ public class AddStoreRequest {
     @Digits(integer = 3, fraction = 7)
     private BigDecimal lng; // 경도
 
-    @Size(max = 255)
-    private String image; // 이미지 주소
-
-
 }

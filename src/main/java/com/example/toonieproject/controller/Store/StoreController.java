@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,9 +25,11 @@ public class StoreController {
 
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/add")
-    public ResponseEntity<String> addStore(@RequestBody AddStoreRequest request) {
+    public ResponseEntity<String> addStore(
+            @RequestPart("request") AddStoreRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
 
-        Store store = storeService.add(request);
+        Store store = storeService.add(request, imageFile);
 
         // 리다이렉트 추가
 //        return ResponseEntity.status(HttpStatus.FOUND) // 302 Redirect
