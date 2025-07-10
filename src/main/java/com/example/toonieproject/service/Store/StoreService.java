@@ -7,15 +7,18 @@ import com.example.toonieproject.dto.Store.StoreSearchResponse;
 import com.example.toonieproject.dto.Store.StoreViewResponse;
 import com.example.toonieproject.entity.Store.AddressOfStore;
 import com.example.toonieproject.entity.Store.Store;
-import com.example.toonieproject.entity.User.User;
+import com.example.toonieproject.entity.Auth.User;
 import com.example.toonieproject.repository.Store.AddressOfStoreRepository;
 import com.example.toonieproject.repository.Store.StoreRepository;
-import com.example.toonieproject.repository.User.UserRepository;
+import com.example.toonieproject.repository.Auth.UserRepository;
+import com.example.toonieproject.service.Storage.FirebaseStorageService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,9 +33,10 @@ public class StoreService {
     private final AddressOfStoreRepository addressOfStoreRepository;
     private final UserRepository userRepository;
     private final StoreTrie storeTrie;
+    private final FirebaseStorageService firebaseStorageService;
 
 
-    public Store add(AddStoreRequest request) {
+    public Store add(AddStoreRequest request, MultipartFile imageFile) {
 
         // 1. 가게 정보 저장
         Store store = new Store();
@@ -47,7 +51,16 @@ public class StoreService {
         store.setInfo(request.getInfo());
 
         // 이미지 링크로 변환 후 저장
-        store.setImage(request.getImage());
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imageUrl = null;
+            try {
+                imageUrl = firebaseStorageService.uploadImage(imageFile);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            store.setImage(imageUrl);
+        }
+
 
         store = storeRepository.saveAndFlush(store); // 트랜잭션 내에서 즉시 DB 반영
 
