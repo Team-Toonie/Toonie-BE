@@ -5,8 +5,12 @@ import com.example.toonieproject.dto.Store.*;
 import com.example.toonieproject.entity.Store.Store;
 import com.example.toonieproject.service.Store.MapService;
 import com.example.toonieproject.service.Store.StoreService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,20 +28,27 @@ public class StoreController {
     private final MapService mapService;
 
     @PreAuthorize("hasRole('OWNER')")
-    @PostMapping("/add")
-    public ResponseEntity<String> addStore(
+    @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AddStoreIdResponse> addStore(
+            @Parameter(
+                    description = "가게 등록 요청 정보(JSON)",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AddStoreRequest.class)
+                    )
+            )
             @RequestPart("request") AddStoreRequest request,
-            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
 
+            @Parameter(description = "가게 이미지 파일")
+            @RequestPart(value = "image", required = false) MultipartFile imageFile
+    ) {
         Store store = storeService.add(request, imageFile);
 
-        // 리다이렉트 추가
-//        return ResponseEntity.status(HttpStatus.FOUND) // 302 Redirect
-//                .location(URI.create("/stores/{storeId}")) // 리다이렉트할 경로
-//                .build();
+        AddStoreIdResponse response = new AddStoreIdResponse(
+                store.getId()
+        );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Store created successfully");
-
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PreAuthorize("hasRole('OWNER')")
