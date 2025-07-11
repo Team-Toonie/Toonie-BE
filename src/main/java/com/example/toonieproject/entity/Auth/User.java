@@ -27,7 +27,7 @@ public class User {
     @Column(name = "phone_number", length = 15)
     private String phoneNumber; // 전화번호
 
-    @Column(name = "nickname", nullable = false, unique = true)
+    @Column(name = "nickname", unique = true)
     private String nickname;
 
     @Enumerated(EnumType.STRING)
@@ -35,7 +35,7 @@ public class User {
     private Role role; // 역할 (OWNER, CUSTOMER)
 
     public enum Role {
-        OWNER, CUSTOMER
+        OWNER, CUSTOMER, TEMPUSER
     }
 
 }
