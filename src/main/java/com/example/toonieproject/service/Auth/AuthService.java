@@ -86,7 +86,7 @@ public class AuthService {
     }
 
 
-    public void registerUser(RegisterDetailUserRequest request) {
+    public TokenResponse registerUser(RegisterDetailUserRequest request) {
 
         // jwt에서 email추출
         String email = SecurityUtil.getCurrentUserEmail();
@@ -103,6 +103,16 @@ public class AuthService {
         // 저장
         userRepository.save(user);
 
+        // JWT 발급
+        String accessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
+        String refreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
+
+        // RefreshToken 저장
+        refreshTokenRepository.deleteByUserId(user.getId());
+        refreshTokenRepository.save(new RefreshToken(user.getId(), refreshToken));
+
+
+        return new TokenResponse(accessToken, refreshToken, request.getRole());
     }
 
 
