@@ -29,15 +29,16 @@ public class AuthController {
     @PostMapping("/callback/google") // 로그인
     public ResponseEntity<?> googleAuthCallback(@RequestBody GoogleAuthRequest request) {
 
-        CallbackResponse callbackResponse = authService.loginWithGoogle(request.getCode(), request.getCodeVerifier());
-        return ResponseEntity.ok(callbackResponse);
+        TokenResponse tokenResponse = authService.loginWithGoogle(request.getCode(), request.getCodeVerifier());
+        return ResponseEntity.ok(tokenResponse);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<TokenResponse> registerUser(@RequestBody RegisterUserRequest request) {
+    @PostMapping("/register/detail-user")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> registerDetailUser(@RequestBody RegisterDetailUserRequest request) {
 
-        TokenResponse tokenResponse = authService.registerUser(request);
-        return ResponseEntity.ok(tokenResponse);
+        authService.registerUser(request);
+        return ResponseEntity.ok("detail-user 설정 완료");
     }
 
     @PreAuthorize("isAuthenticated()")

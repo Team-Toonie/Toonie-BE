@@ -7,6 +7,8 @@ import com.example.toonieproject.entity.Auth.RefreshToken;
 import com.example.toonieproject.entity.Auth.User;
 import com.example.toonieproject.repository.Auth.RefreshTokenRepository;
 import com.example.toonieproject.repository.Auth.UserRepository;
+import com.example.toonieproject.util.auth.SecurityUtil;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -33,7 +35,7 @@ public class AuthService {
 
 
 
-    public CallbackResponse loginWithGoogle(String code, String codeVerifier) {
+    public TokenResponse loginWithGoogle(String code, String codeVerifier) {
 
         // 1. 인가 코드 -> 구글 토큰 요청
         GoogleTokenResponse tokenResponse = getTokenFromGoogle(URLDecoder.decode(code, StandardCharsets.UTF_8), codeVerifier);
@@ -59,41 +61,47 @@ public class AuthService {
             String jwtAccessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
             String jwtRefreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
 
-            return new CallbackResponse(true, jwtAccessToken, jwtRefreshToken, null, null);
-
+            return new TokenResponse(jwtAccessToken, jwtRefreshToken, user.getRole());
         } else {
-            // 4-2. 신규 회원이면 → 회원가입 정보 프론트로 전달 (JWT 발급 X)
-            return new CallbackResponse(false, null, null, email, name);
+            // 4-2. 신규 회원이면 → 임시 회원 가입
+
+            // 새로운 User 객체 생성 (최초 INSERT)
+            User user = new User();
+            user.setEmail(email);
+            user.setName(name);
+            user.setRole(User.Role.valueOf("TEMPUSER"));
+
+            // 저장
+            userRepository.save(user);
+
+            // JWT 발급
+            String accessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
+            String refreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
+
+            // RefreshToken 저장
+            refreshTokenRepository.save(new RefreshToken(user.getId(), refreshToken));
+
+            return new TokenResponse(accessToken, refreshToken, User.Role.valueOf("TEMPUSER"));
         }
     }
 
 
-    public TokenResponse registerUser(RegisterUserRequest request) {
+    public void registerUser(RegisterDetailUserRequest request) {
 
-        // 이미 회원이면 예외 처리
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 가입된 사용자입니다.");
-        }
+        // jwt에서 email추출
+        String email = SecurityUtil.getCurrentUserEmail();
 
-        // 1. 새로운 User 객체 생성 (최초 INSERT)
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setName(request.getName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        // user 정보 설정
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
         user.setRole(request.getRole());
         user.setNickname(request.getNickname());
+        user.setPhoneNumber(request.getPhoneNumber());
 
-        // 2. 저장
+        // 저장
         userRepository.save(user);
 
-        // 3. JWT 발급
-        String accessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
-        String refreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
-
-        // 4. RefreshToken 저장
-        refreshTokenRepository.save(new RefreshToken(user.getId(), refreshToken));
-
-        return new TokenResponse(accessToken, refreshToken);
     }
 
 

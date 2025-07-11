@@ -22,7 +22,7 @@ public class SwaggerConfig {
                 .in(SecurityScheme.In.HEADER)
                 .name("Authorization"); // 헤더 이름
 
-        // Security Requirement 설정
+        // fSecurity Requirement 설정
         SecurityRequirement securityRequirement = new SecurityRequirement()
                 .addList("Authorization"); // 위에서 설정한 name과 동일해야 함
 
