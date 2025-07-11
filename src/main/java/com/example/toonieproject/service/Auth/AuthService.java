@@ -90,6 +90,7 @@ public class AuthService {
 
         // jwt에서 email추출
         String email = SecurityUtil.getCurrentUserEmail();
+        System.out.println(email);
 
         // user 정보 설정
         User user = userRepository.findByEmail(email)
