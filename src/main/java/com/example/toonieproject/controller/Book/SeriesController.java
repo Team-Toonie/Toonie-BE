@@ -3,14 +3,20 @@ package com.example.toonieproject.controller.Book;
 
 import com.example.toonieproject.dto.Series.AddSeriesRequest;
 import com.example.toonieproject.dto.Series.SeriesDetailResponse;
+import com.example.toonieproject.dto.Store.AddStoreRequest;
 import com.example.toonieproject.dto.Store.StoreFindBySeriesResponse;
 import com.example.toonieproject.service.Book.SeriesService;
 import com.example.toonieproject.service.Store.MapService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,10 +30,22 @@ public class SeriesController {
     private final MapService mapService;
 
     @PreAuthorize("hasRole('OWNER')")
-    @PostMapping("/register")
-    public ResponseEntity<String> addSeries(@RequestBody AddSeriesRequest request) {
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> addSeries(
+            @Parameter(
+                    description = "시리즈 등록 요청 정보(JSON)",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AddStoreRequest.class)
+                    )
+            )
+            @RequestBody AddSeriesRequest request,
 
-        seriesService.add(request);
+            @Parameter(description = "가게 이미지 파일")
+            @RequestPart(value = "image", required = false) MultipartFile imageFile
+            ) {
+
+        seriesService.add(request, imageFile);
 
         return ResponseEntity.status(HttpStatus.CREATED).body("Series created successfully");
 

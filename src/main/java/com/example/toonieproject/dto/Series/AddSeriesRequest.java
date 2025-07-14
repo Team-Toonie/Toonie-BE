@@ -14,7 +14,6 @@ import java.util.List;
 public class AddSeriesRequest {
 
     private String title;
-    private String image;
     private String publisher;
     private List<AuthorDTO> authors;
     private List<String> genres;

@@ -5,9 +5,12 @@ import com.example.toonieproject.dto.Series.AuthorDTO;
 import com.example.toonieproject.dto.Series.SeriesDetailResponse;
 import com.example.toonieproject.entity.Book.*;
 import com.example.toonieproject.repository.Book.*;
+import com.example.toonieproject.service.Storage.FirebaseStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -19,16 +22,25 @@ public class SeriesService {
     private final GenreRepository genreRepository;
     private final SeriesAuthorRepository seriesAuthorRepository;
     private final SeriesGenreRepository seriesGenreRepository;
+    private final FirebaseStorageService firebaseStorageService;
 
 
 
-    public void add(AddSeriesRequest request) {
+    public void add(AddSeriesRequest request, MultipartFile imageFile) {
 
         // 1. 시리즈 저장
         Series series = new Series();
         series.setTitle(request.getTitle());
-            // 이미지 링크로 변환 후 저장
-        series.setImage(request.getImage());
+        // 이미지 링크로 변환 후 저장
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imageUrl = null;
+            try {
+                imageUrl = firebaseStorageService.uploadImage(imageFile);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            series.setImage(imageUrl);
+        }
         series.setPublisher(request.getPublisher());
 
         seriesRepository.save(series);

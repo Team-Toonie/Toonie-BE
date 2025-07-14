@@ -66,9 +66,10 @@ public class MapService {
                 ((Number) result[0]).longValue(),  // store_id
                 (String) result[1],               // store_name
                 (String) result[2],               // address
-                (BigDecimal) result[3],           // lat
-                (BigDecimal) result[4],           // lng
-                ((Number) result[5]).doubleValue() // distance
+                (String) result[3],
+                (BigDecimal) result[4],           // lat
+                (BigDecimal) result[5],           // lng
+                ((Number) result[6]).doubleValue() // distance
         )).toList();
 
     }

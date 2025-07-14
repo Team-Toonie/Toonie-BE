@@ -43,7 +43,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 
 
     @Query(value = """
-        SELECT s.store_id, s.name, a.address, a.lat, a.lng,
+        SELECT s.store_id, s.name, s.image, a.address, a.lat, a.lng,
                (6371 * acos(cos(radians(:lat)) * cos(radians(a.lat)) 
                * cos(radians(a.lng) - radians(:lon)) 
                + sin(radians(:lat)) * sin(radians(a.lat))))
