@@ -10,9 +10,12 @@ import com.example.toonieproject.entity.Store.Store;
 import com.example.toonieproject.repository.Book.BookRepository;
 import com.example.toonieproject.repository.Book.SeriesRepository;
 import com.example.toonieproject.repository.Store.StoreRepository;
+import com.example.toonieproject.util.auth.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.nio.file.AccessDeniedException;
 
 @RequiredArgsConstructor
 @Service
@@ -23,13 +26,27 @@ public class BookService {
     private final StoreRepository storeRepository;
 
 
-    public void add(AddSingleBookRequest addSingleBookRequest, long storeId) {
+    public void add(AddSingleBookRequest addSingleBookRequest) {
 
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        // storeId로 Store 가져오기
+        Store store = storeRepository.findById(addSingleBookRequest.getStoreId())
+                .orElseThrow(() -> new EntityNotFoundException("Store not found"));
+
+        // ownerId 검증
+        if (!store.getUser().getId().equals(currentUserId)) {
+            try {
+                throw new AccessDeniedException("You do not have permission.");
+            } catch (AccessDeniedException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         Series series = seriesRepository.findById(addSingleBookRequest.getSeriesId())
                 .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + addSingleBookRequest.getSeriesId()));
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + storeId));
+        store = storeRepository.findById(addSingleBookRequest.getStoreId())
+                .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + addSingleBookRequest.getStoreId()));
 
 
         Book book = new Book();

@@ -14,4 +14,14 @@ public class SecurityUtil {
         TokenUserDetails principal = (TokenUserDetails) authentication.getPrincipal();
         return principal.getEmail();
     }
+
+    public static Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("No authentication found");
+        }
+
+        TokenUserDetails principal = (TokenUserDetails) authentication.getPrincipal();
+        return principal.getId();
+    }
 }

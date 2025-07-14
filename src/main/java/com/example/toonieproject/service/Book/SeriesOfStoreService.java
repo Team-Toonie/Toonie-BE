@@ -9,9 +9,12 @@ import com.example.toonieproject.entity.Store.Store;
 import com.example.toonieproject.repository.Book.SeriesOfStoreRepository;
 import com.example.toonieproject.repository.Book.SeriesRepository;
 import com.example.toonieproject.repository.Store.StoreRepository;
+import com.example.toonieproject.util.auth.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.nio.file.AccessDeniedException;
 
 @RequiredArgsConstructor
 @Service
@@ -25,10 +28,26 @@ public class SeriesOfStoreService {
 
     public void add(AddSeriesOfStoreRequest request, long storeId, long seriesId) {
 
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        // storeId로 Store 가져오기
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new EntityNotFoundException("Store not found"));
+
+        // ownerId 검증
+        if (!store.getUser().getId().equals(currentUserId)) {
+            try {
+                throw new AccessDeniedException("You do not have permission.");
+            } catch (AccessDeniedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
         // 1. 시리즈와 가게 엔티티 조회
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + seriesId));
-        Store store = storeRepository.findById(storeId)
+        store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + storeId));
 
         // 2. 복합 키 생성

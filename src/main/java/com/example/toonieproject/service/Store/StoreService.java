@@ -12,6 +12,7 @@ import com.example.toonieproject.repository.Store.AddressOfStoreRepository;
 import com.example.toonieproject.repository.Store.StoreRepository;
 import com.example.toonieproject.repository.Auth.UserRepository;
 import com.example.toonieproject.service.Storage.FirebaseStorageService;
+import com.example.toonieproject.util.auth.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,13 +39,14 @@ public class StoreService {
 
 
     public Store add(AddStoreRequest request, MultipartFile imageFile) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
 
         // 1. 가게 정보 저장
         Store store = new Store();
 
         store.setName(request.getName());
-        User user = userRepository.findById(request.getOwnerId())
-                .orElseThrow(() -> new EntityNotFoundException("Owner not found with id: " + request.getOwnerId()));
+        User user = userRepository.findById(currentUserId) // 현재 로그인 한 사용자의 id로 생성
+                .orElseThrow(() -> new EntityNotFoundException("Owner not found with id: " + currentUserId));
         store.setUser(user);
         store.setRepresentUrl(request.getRepresentUrl());
         store.setPhoneNumber(request.getPhoneNumber());
@@ -84,6 +87,16 @@ public class StoreService {
     }
 
     public List<OwnerStoresResponse> findByUserId(Long userId) {
+
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        // ownerId 검증
+        if (userId.equals(currentUserId)) {
+            try {
+                throw new AccessDeniedException("You do not have permission");
+            } catch (AccessDeniedException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         // ownerId에 해당하는 가게 리스트 조회
         List<Store> stores = storeRepository.findByUser_Id(userId);

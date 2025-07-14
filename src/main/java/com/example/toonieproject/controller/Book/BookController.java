@@ -30,7 +30,7 @@ public class BookController {
             singleRequest.setIsRentable(request.getIsRentable());
             singleRequest.setAgeLimit(request.getAgeLimit());
 
-            bookService.add(singleRequest, request.getStoreId());
+            bookService.add(singleRequest);
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body("book created successfully");
