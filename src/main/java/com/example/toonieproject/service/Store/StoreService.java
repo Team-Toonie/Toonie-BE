@@ -92,7 +92,7 @@ public class StoreService {
         System.out.println("currentUserId: " + currentUserId + "\n" + "userId: " + userId);
 
         // ownerId 검증
-        if (userId.equals(currentUserId)) {
+        if (!userId.equals(currentUserId)) {
             try {
                 throw new AccessDeniedException("You do not have permission");
             } catch (AccessDeniedException e) {
