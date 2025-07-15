@@ -97,6 +97,8 @@ public class StoreService {
                 throw new RuntimeException(e);
             }
         }
+        System.out.println("currentUserId: " + currentUserId + "\n" + "userId: " + userId);
+
 
         // ownerId에 해당하는 가게 리스트 조회
         List<Store> stores = storeRepository.findByUser_Id(userId);
