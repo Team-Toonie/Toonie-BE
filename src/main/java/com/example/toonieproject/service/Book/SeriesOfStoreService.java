@@ -26,7 +26,7 @@ public class SeriesOfStoreService {
 
 
 
-    public void add(AddSeriesOfStoreRequest request, long storeId, long seriesId) {
+    public void add(AddSeriesOfStoreRequest request, long storeId, long seriesId) throws AccessDeniedException {
 
         Long currentUserId = SecurityUtil.getCurrentUserId();
 
@@ -36,11 +36,7 @@ public class SeriesOfStoreService {
 
         // ownerId 검증
         if (!store.getUser().getId().equals(currentUserId)) {
-            try {
-                throw new AccessDeniedException("You do not have permission.");
-            } catch (AccessDeniedException e) {
-                throw new RuntimeException(e);
-            }
+            throw new AccessDeniedException("You do not have permission.");
         }
 
 

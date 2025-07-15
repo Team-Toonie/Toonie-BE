@@ -17,4 +17,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
     }
 
+
+    // 탈퇴
+
 }

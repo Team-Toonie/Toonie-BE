@@ -26,7 +26,7 @@ public class BookService {
     private final StoreRepository storeRepository;
 
 
-    public void add(AddSingleBookRequest addSingleBookRequest) {
+    public void add(AddSingleBookRequest addSingleBookRequest) throws AccessDeniedException {
 
         Long currentUserId = SecurityUtil.getCurrentUserId();
 
@@ -36,11 +36,7 @@ public class BookService {
 
         // ownerId 검증
         if (!store.getUser().getId().equals(currentUserId)) {
-            try {
-                throw new AccessDeniedException("You do not have permission.");
-            } catch (AccessDeniedException e) {
-                throw new RuntimeException(e);
-            }
+            throw new AccessDeniedException("You do not have permission.");
         }
 
         Series series = seriesRepository.findById(addSingleBookRequest.getSeriesId())

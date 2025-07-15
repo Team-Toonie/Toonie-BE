@@ -38,8 +38,13 @@ public class StoreService {
     private final FirebaseStorageService firebaseStorageService;
 
 
-    public Store add(AddStoreRequest request, MultipartFile imageFile) {
+    public Store add(AddStoreRequest request, MultipartFile imageFile) throws AccessDeniedException {
         Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        // ownerId 검증
+        if (!request.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("You do not have permission.");
+        }
 
         // 1. 가게 정보 저장
         Store store = new Store();
@@ -86,18 +91,14 @@ public class StoreService {
         return store;
     }
 
-    public List<OwnerStoresResponse> findByUserId(Long userId) {
+    public List<OwnerStoresResponse> findByUserId(Long userId) throws AccessDeniedException {
 
         Long currentUserId = SecurityUtil.getCurrentUserId();
         System.out.println("currentUserId: " + currentUserId + "\n" + "userId: " + userId);
 
         // ownerId 검증
         if (!userId.equals(currentUserId)) {
-            try {
-                throw new AccessDeniedException("You do not have permission");
-            } catch (AccessDeniedException e) {
-                throw new RuntimeException(e);
-            }
+            throw new AccessDeniedException("You do not have permission.");
         }
 
         // ownerId에 해당하는 가게 리스트 조회

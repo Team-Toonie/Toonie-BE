@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -41,7 +42,7 @@ public class StoreController {
 
             @Parameter(description = "가게 이미지 파일")
             @RequestPart(value = "image", required = false) MultipartFile imageFile
-    ) {
+    ) throws AccessDeniedException {
         Store store = storeService.add(request, imageFile);
 
         AddStoreIdResponse response = new AddStoreIdResponse(
@@ -53,7 +54,7 @@ public class StoreController {
 
     @PreAuthorize("hasRole('OWNER')")
     @GetMapping("/owners/{ownerId}")
-    public ResponseEntity<List<OwnerStoresResponse>> findByOwnerId(@PathVariable long ownerId) {
+    public ResponseEntity<List<OwnerStoresResponse>> findByOwnerId(@PathVariable long ownerId) throws AccessDeniedException {
 
         return ResponseEntity.ok(storeService.findByUserId(ownerId));
     }
