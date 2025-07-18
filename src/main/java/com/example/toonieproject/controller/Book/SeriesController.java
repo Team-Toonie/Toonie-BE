@@ -66,4 +66,11 @@ public class SeriesController {
         List<StoreFindBySeriesResponse> response = mapService.getStoresBySeriesId(seriesId, lat, lon);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/stores/{storeId}")
+    public ResponseEntity<List<SeriesDetailResponse>> getSeriesByStore(@PathVariable String storeId) {
+
+        return ResponseEntity.ok(seriesService.getSeriesByStore(Long.valueOf(storeId)));
+
+    }
 }

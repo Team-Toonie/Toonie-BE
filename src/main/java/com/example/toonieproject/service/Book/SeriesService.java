@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -22,6 +23,8 @@ public class SeriesService {
     private final GenreRepository genreRepository;
     private final SeriesAuthorRepository seriesAuthorRepository;
     private final SeriesGenreRepository seriesGenreRepository;
+    private final SeriesOfStoreRepository seriesOfStoreRepository;
+
     private final FirebaseStorageService firebaseStorageService;
 
 
@@ -110,7 +113,46 @@ public class SeriesService {
                 series.getImage(),
                 series.getPublisher()
         );
-
-
     }
+
+
+    // 1. 해당 store가 보유한 series 목록 조회
+    public List<SeriesDetailResponse> getSeriesByStore(Long storeId) {
+
+        // 1. 해당 store가 보유한 series 목록 조회
+        List<SeriesOfStore> seriesOfStoreList = seriesOfStoreRepository.findByStore_Id(storeId);
+
+        return seriesOfStoreList.stream()
+                .map(seriesOfStore -> {
+                    Series series = seriesOfStore.getSeries();
+                    Long seriesId = series.getSeriesId();
+
+                    // 2. 작가 정보
+                    List<Long> authorIds = seriesAuthorRepository.findAuthorIdsBySeriesId(seriesId);
+                    List<Author> authors = authorRepository.findAllById(authorIds);
+                    List<AuthorDTO> authorDTOs = authors.stream()
+                            .map(author -> new AuthorDTO(author.getAuthorId(), author.getName()))
+                            .toList();
+
+                    // 3. 장르 정보
+                    List<String> genreNames = seriesGenreRepository.findGenreNamesBySeriesId(seriesId);
+
+                    // 4. 응답 DTO 생성
+                    return new SeriesDetailResponse(
+                            seriesId,
+                            series.getTitle(),
+                            authorDTOs,
+                            genreNames,
+                            series.getImage(),
+                            series.getPublisher()
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+
+
+
+
+
 }

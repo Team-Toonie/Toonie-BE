@@ -1,6 +1,7 @@
 package com.example.toonieproject.controller.Store;
 
 
+import com.example.toonieproject.dto.Series.SeriesDetailResponse;
 import com.example.toonieproject.dto.Store.*;
 import com.example.toonieproject.entity.Store.Store;
 import com.example.toonieproject.service.Store.MapService;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -96,6 +98,7 @@ public class StoreController {
 
         return ResponseEntity.ok(stores);
     }
+
 
 
 
