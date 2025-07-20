@@ -123,6 +123,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다.");
         }
 
+        System.out.println("refresh token: " + refreshToken);
         // 2. DB에 저장된 refreshToken과 비교
         RefreshToken savedToken = refreshTokenRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new IllegalArgumentException("저장된 리프레시 토큰이 없습니다."));
