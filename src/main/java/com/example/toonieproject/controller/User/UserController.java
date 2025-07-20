@@ -1,6 +1,7 @@
 package com.example.toonieproject.controller.User;
 
 import com.example.toonieproject.config.Jwt.JwtTokenProvider;
+import com.example.toonieproject.dto.Auth.UpdateUserRequest;
 import com.example.toonieproject.entity.Auth.User;
 import com.example.toonieproject.service.User.UserService;
 import com.example.toonieproject.util.auth.SecurityUtil;
@@ -38,6 +39,14 @@ public class UserController {
         return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/update")
+    public ResponseEntity<String> updateCurrentUser(@RequestBody UpdateUserRequest request) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        userService.updateUser(currentUserId, request);
+
+        return ResponseEntity.ok("회원 정보가 수정되었습니다.");
+    }
 
 
 

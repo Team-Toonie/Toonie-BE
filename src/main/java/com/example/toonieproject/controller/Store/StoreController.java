@@ -55,6 +55,27 @@ public class StoreController {
     }
 
     @PreAuthorize("hasRole('OWNER')")
+    @PutMapping(value = "/update/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> updateStore(
+            @PathVariable Long storeId,
+
+            @Parameter(
+                    description = "가게 수정 요청 정보(JSON)",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AddStoreRequest.class)
+                    )
+            )
+            @RequestPart("request") AddStoreRequest request,
+
+            @Parameter(description = "가게 이미지 파일")
+            @RequestPart(value = "image", required = false) MultipartFile imageFile
+    ) throws AccessDeniedException {
+        storeService.update(storeId, request, imageFile);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
     @GetMapping("/owners/{ownerId}")
     public ResponseEntity<List<OwnerStoresResponse>> findByOwnerId(@PathVariable long ownerId) throws AccessDeniedException {
 

@@ -91,6 +91,67 @@ public class StoreService {
         return store;
     }
 
+    @Transactional
+    public void update(Long storeId, AddStoreRequest request, MultipartFile imageFile) throws AccessDeniedException {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        if (!request.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("You do not have permission.");
+        }
+
+        // 1. 기존 가게 조회
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new EntityNotFoundException("Store not found with id: " + storeId));
+
+        // 2. 소유자 일치 여부 확인
+        if (!store.getUser().getId().equals(currentUserId)) {
+            throw new AccessDeniedException("You are not the owner of this store.");
+        }
+
+        // 3. 값 수정
+        store.setName(request.getName());
+        store.setRepresentUrl(request.getRepresentUrl());
+        store.setPhoneNumber(request.getPhoneNumber());
+        store.setIsOpen(request.getIsOpen());
+        store.setInfo(request.getInfo());
+
+        // 4. 이미지 변경
+        // 기존 이미지 삭제
+        if (store.getImage() != null) {
+            String oldImageUrl = store.getImage();
+            String oldFileName = firebaseStorageService.extractFilenameFromUrl(oldImageUrl);
+            firebaseStorageService.deleteImage(oldFileName);
+        }
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+
+            String imageUrl;
+            try {
+                imageUrl = firebaseStorageService.uploadImage(imageFile);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            store.setImage(imageUrl);
+        }
+
+        storeRepository.save(store);
+
+        // 5. 주소 업데이트
+        AddressOfStore address = addressOfStoreRepository.findById(storeId)
+                .orElseThrow(() -> new EntityNotFoundException("Address not found for storeId: " + storeId));
+
+        address.setAddress(request.getAddress());
+        address.setDetailedAddress(request.getDetailedAddress());
+        address.setLat(request.getLat());
+        address.setLng(request.getLng());
+
+        addressOfStoreRepository.save(address);
+
+        // 6. Trie 갱신
+        storeTrie.updateStore(store); // 직접 구현한 경우에만 필요
+    }
+
+
     public List<OwnerStoresResponse> findByUserId(Long userId) throws AccessDeniedException {
 
         Long currentUserId = SecurityUtil.getCurrentUserId();
@@ -120,6 +181,7 @@ public class StoreService {
     }
 
 
+    // 가게 정보 반환
     public StoreViewResponse findByStoreId(Long storeId) {
         Store store = storeRepository.findById(storeId).orElseThrow();
         AddressOfStore address = addressOfStoreRepository.findById(storeId).orElseThrow();
@@ -142,6 +204,7 @@ public class StoreService {
 
     }
 
+    // 가게 검색
     public List<StoreSearchResponse> searchStores(String query) {
 
         List<Store> stores = storeTrie.searchStore(query);
@@ -154,5 +217,10 @@ public class StoreService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+
+
+
+
 
 }
