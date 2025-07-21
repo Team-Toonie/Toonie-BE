@@ -11,6 +11,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -67,10 +70,32 @@ public class SeriesController {
         return ResponseEntity.ok(response);
     }
 
+    // 가게가 보유한 시리즈 목록
     @GetMapping("/stores/{storeId}")
-    public ResponseEntity<List<SeriesDetailResponse>> getSeriesByStore(@PathVariable String storeId) {
+    public ResponseEntity<Page<SeriesDetailResponse>> getSeriesByStore(
+            @PathVariable Long storeId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        return ResponseEntity.ok(seriesService.getSeriesByStore(Long.valueOf(storeId)));
+        Pageable pageable = PageRequest.of(page, size);
+        Page<SeriesDetailResponse> result = seriesService.getSeriesByStore(storeId, pageable);
+
+        return ResponseEntity.ok(result);
 
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<Page<SeriesDetailResponse>> getSeriesAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<SeriesDetailResponse> result = seriesService.getSeriesAll(pageable);
+
+        return ResponseEntity.ok(result);
+    }
+
+
 }
