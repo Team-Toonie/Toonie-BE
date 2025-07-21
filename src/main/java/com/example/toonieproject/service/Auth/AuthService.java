@@ -56,11 +56,11 @@ public class AuthService {
             // 4-1.기존 회원이면 → 리프레시 토큰 저장 → JWT 반환
             User user = optionalUser.get();
 
-            // DB에 RefreshToken 저장/업데이트
-            refreshTokenRepository.save(new RefreshToken(user.getId(), googleRefreshToken));
-
             String jwtAccessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
             String jwtRefreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
+
+            // DB에 RefreshToken 저장/업데이트
+            refreshTokenRepository.save(new RefreshToken(user.getId(), jwtRefreshToken));
 
             return new TokenResponse(jwtAccessToken, jwtRefreshToken, user.getRole());
         } else {
