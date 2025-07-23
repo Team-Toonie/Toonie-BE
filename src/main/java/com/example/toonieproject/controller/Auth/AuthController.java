@@ -50,9 +50,9 @@ public class AuthController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String bearerToken) {
+    public ResponseEntity<String> logout() {
 
-        authService.logout(bearerToken);
+        authService.logout();
         return ResponseEntity.ok("로그아웃 되었습니다.");
     }
 

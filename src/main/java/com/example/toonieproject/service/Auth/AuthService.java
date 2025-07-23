@@ -138,12 +138,11 @@ public class AuthService {
 
 
     @Transactional
-    public void logout(String bearerToken) {
-        String accessToken = bearerToken.replace("Bearer ", "");
-        Long userId = jwtTokenProvider.getUserId(accessToken);
+    public void logout() {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
 
         // 리프레시 토큰 삭제
-        refreshTokenRepository.deleteByUserId(userId);
+        refreshTokenRepository.deleteByUserId(currentUserId);
     }
 
     /*
