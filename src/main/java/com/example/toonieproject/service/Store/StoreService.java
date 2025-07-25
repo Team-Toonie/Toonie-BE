@@ -1,10 +1,7 @@
 package com.example.toonieproject.service.Store;
 
 
-import com.example.toonieproject.dto.Store.AddStoreRequest;
-import com.example.toonieproject.dto.Store.OwnerStoresResponse;
-import com.example.toonieproject.dto.Store.StoreSearchResponse;
-import com.example.toonieproject.dto.Store.StoreViewResponse;
+import com.example.toonieproject.dto.Store.*;
 import com.example.toonieproject.entity.Store.AddressOfStore;
 import com.example.toonieproject.entity.Store.Store;
 import com.example.toonieproject.entity.Auth.User;
@@ -84,20 +81,15 @@ public class StoreService {
 
         addressOfStoreRepository.save(addressOfStore);
 
-        // Trie에 추가
+        // Trie 추가
         storeTrie.insertStore(store);
-
 
         return store;
     }
 
     @Transactional
-    public void update(Long storeId, AddStoreRequest request, MultipartFile imageFile) throws AccessDeniedException {
+    public void update(Long storeId, updateStoreRequest request, MultipartFile imageFile) throws AccessDeniedException {
         Long currentUserId = SecurityUtil.getCurrentUserId();
-
-        if (!request.getOwnerId().equals(currentUserId)) {
-            throw new AccessDeniedException("You do not have permission.");
-        }
 
         // 1. 기존 가게 조회
         Store store = storeRepository.findById(storeId)
@@ -112,7 +104,6 @@ public class StoreService {
         store.setName(request.getName());
         store.setRepresentUrl(request.getRepresentUrl());
         store.setPhoneNumber(request.getPhoneNumber());
-        store.setIsOpen(request.getIsOpen());
         store.setInfo(request.getInfo());
 
         // 4. 이미지 변경
@@ -149,6 +140,37 @@ public class StoreService {
 
         // 6. Trie 갱신
         storeTrie.updateStore(store); // 직접 구현한 경우에만 필요
+    }
+
+    @Transactional
+    public void delete(Long storeId) throws AccessDeniedException {
+        try {
+//        Long currentUserId = SecurityUtil.getCurrentUserId();
+//
+            Store store = storeRepository.findById(storeId)
+                    .orElseThrow(() -> new EntityNotFoundException("Store not found with id: " + storeId));
+//
+//        // 권한 확인
+//        if (!store.getUser().getId().equals(currentUserId)) {
+//            throw new AccessDeniedException("You are not the owner of this store.");
+//        }
+
+            System.out.println("delete store id: " + storeId);
+            // 이미지 삭제 (Firebase에서)
+            if (store.getImage() != null) {
+                String fileName = firebaseStorageService.extractFilenameFromUrl(store.getImage());
+                firebaseStorageService.deleteImage(fileName);
+            }
+
+            // Trie 갱신
+            storeTrie.deleteStore(store);
+
+            // 삭제
+            storeRepository.deleteByStoreId(store.getId());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 

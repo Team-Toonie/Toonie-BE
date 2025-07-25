@@ -3,7 +3,9 @@ package com.example.toonieproject.repository.Store;
 
 
 import com.example.toonieproject.entity.Store.Store;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -58,4 +60,8 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
                                                     @Param("lat") double lat,
                                                     @Param("lon") double lon);
 
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Store s WHERE s.id = :storeId")
+    void deleteByStoreId(@Param("storeId") Long storeId);
 }

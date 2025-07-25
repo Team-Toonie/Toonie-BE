@@ -66,13 +66,21 @@ public class StoreController {
                             schema = @Schema(implementation = AddStoreRequest.class)
                     )
             )
-            @RequestPart("request") AddStoreRequest request,
+            @RequestPart("request") updateStoreRequest request,
 
             @Parameter(description = "가게 이미지 파일")
             @RequestPart(value = "image", required = false) MultipartFile imageFile
     ) throws AccessDeniedException {
         storeService.update(storeId, request, imageFile);
         return ResponseEntity.ok().build();
+    }
+
+    //@PreAuthorize("hasRole('OWNER')")
+    @DeleteMapping("/{storeId}")
+    public ResponseEntity<Void> deleteStore(@PathVariable Long storeId) throws AccessDeniedException {
+        storeService.delete(storeId);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasRole('OWNER')")

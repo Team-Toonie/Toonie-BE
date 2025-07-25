@@ -54,7 +54,7 @@ public class StoreTrie {
         node.isContainWord  = true; // 해당 노드가 하나의 완성된 단어임을 표시
     }
 
-    // 해당 가게의 이름과 관련된 노드를 모두 제거
+    // 해당 가게와 관련된 노드를 모두 제거
     @Transactional
     public void deleteStore(Store store) {
         String name = store.getName().replaceAll("\\s+", "");
@@ -69,14 +69,13 @@ public class StoreTrie {
     }
 
     // 재귀적으로 노드를 따라가며 해당 store 제거
-    private boolean deleteRecursive(Node current, String key, int index, Store store) {
+    private boolean deleteRecursive(Node current, String key, int index, Store targetStore) {
         if (index == key.length()) {
-            // 단어 끝에 도달하면 store 제거
-            current.stores.remove(store);
+            // storeId가 같은 항목만 제거
+            current.stores.removeIf(store -> store.getId().equals(targetStore.getId()));
             if (current.stores.isEmpty()) {
                 current.isContainWord = false;
             }
-            // 자식 노드가 없고 store도 없으면 true 반환해 부모가 해당 노드를 삭제할 수 있도록
             return current.childNodes.isEmpty() && current.stores.isEmpty();
         }
 
@@ -84,7 +83,7 @@ public class StoreTrie {
         Node next = current.childNodes.get(ch);
         if (next == null) return false;
 
-        boolean shouldDeleteCurrentNode = deleteRecursive(next, key, index + 1, store);
+        boolean shouldDeleteCurrentNode = deleteRecursive(next, key, index + 1, targetStore);
 
         if (shouldDeleteCurrentNode) {
             current.childNodes.remove(ch);
