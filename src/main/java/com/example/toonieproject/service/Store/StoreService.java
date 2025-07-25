@@ -144,33 +144,29 @@ public class StoreService {
 
     @Transactional
     public void delete(Long storeId) throws AccessDeniedException {
-        try {
-//        Long currentUserId = SecurityUtil.getCurrentUserId();
-//
-            Store store = storeRepository.findById(storeId)
-                    .orElseThrow(() -> new EntityNotFoundException("Store not found with id: " + storeId));
-//
-//        // 권한 확인
-//        if (!store.getUser().getId().equals(currentUserId)) {
-//            throw new AccessDeniedException("You are not the owner of this store.");
-//        }
+        Long currentUserId = SecurityUtil.getCurrentUserId();
 
-            System.out.println("delete store id: " + storeId);
-            // 이미지 삭제 (Firebase에서)
-            if (store.getImage() != null) {
-                String fileName = firebaseStorageService.extractFilenameFromUrl(store.getImage());
-                firebaseStorageService.deleteImage(fileName);
-            }
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new EntityNotFoundException("Store not found with id: " + storeId));
 
-            // Trie 갱신
-            storeTrie.deleteStore(store);
-
-            // 삭제
-            storeRepository.deleteByStoreId(store.getId());
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        // 권한 확인
+        if (!store.getUser().getId().equals(currentUserId)) {
+            throw new AccessDeniedException("You are not the owner of this store.");
         }
+
+        System.out.println("delete store id: " + storeId);
+        // 이미지 삭제 (Firebase에서)
+        if (store.getImage() != null) {
+            String fileName = firebaseStorageService.extractFilenameFromUrl(store.getImage());
+            firebaseStorageService.deleteImage(fileName);
+        }
+
+        // Trie 갱신
+        storeTrie.deleteStore(store);
+
+        // 삭제
+        storeRepository.deleteByStoreId(store.getId());
+
     }
 
 

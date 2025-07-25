@@ -75,7 +75,7 @@ public class StoreController {
         return ResponseEntity.ok().build();
     }
 
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @DeleteMapping("/{storeId}")
     public ResponseEntity<Void> deleteStore(@PathVariable Long storeId) throws AccessDeniedException {
         storeService.delete(storeId);
