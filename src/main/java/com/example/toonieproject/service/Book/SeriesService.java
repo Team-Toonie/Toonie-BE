@@ -5,10 +5,16 @@ import com.example.toonieproject.dto.Series.AuthorDTO;
 import com.example.toonieproject.dto.Series.SeriesDetailResponse;
 import com.example.toonieproject.entity.Book.*;
 import com.example.toonieproject.repository.Book.*;
+import com.example.toonieproject.service.Storage.FirebaseStorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -19,16 +25,27 @@ public class SeriesService {
     private final GenreRepository genreRepository;
     private final SeriesAuthorRepository seriesAuthorRepository;
     private final SeriesGenreRepository seriesGenreRepository;
+    private final SeriesOfStoreRepository seriesOfStoreRepository;
+
+    private final FirebaseStorageService firebaseStorageService;
 
 
 
-    public void add(AddSeriesRequest request) {
+    public void add(AddSeriesRequest request, MultipartFile imageFile) {
 
         // 1. 시리즈 저장
         Series series = new Series();
         series.setTitle(request.getTitle());
-            // 이미지 링크로 변환 후 저장
-        series.setImage(request.getImage());
+        // 이미지 링크로 변환 후 저장
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imageUrl = null;
+            try {
+                imageUrl = firebaseStorageService.uploadImage(imageFile);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            series.setImage(imageUrl);
+        }
         series.setPublisher(request.getPublisher());
 
         seriesRepository.save(series);
@@ -74,31 +91,55 @@ public class SeriesService {
 
 
     public SeriesDetailResponse getSeriesDetails(Long seriesId) {
-
-        // 1. 시리즈
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 시리즈가 존재하지 않습니다."));
 
-        // 2.1 작가 - 시리즈 ID로 SeriesAuthor 테이블에서 authorId 리스트 가져오기
+        return convertToSeriesDetailResponse(series);
+    }
+
+
+    // 해당 store가 보유한 series 목록 조회
+    public Page<SeriesDetailResponse> getSeriesByStore(Long storeId, Pageable pageable) {
+
+        // 1. 해당 store가 보유한 series 목록 조회
+        Page<SeriesOfStore> seriesOfStorePage = seriesOfStoreRepository.findByStore_Id(storeId, pageable);
+
+        return seriesOfStorePage.map(seriesOfStore -> convertToSeriesDetailResponse(seriesOfStore.getSeries()));
+    }
+
+    // 모든 시리즈 반환
+    public Page<SeriesDetailResponse> getSeriesAll(Pageable pageable) {
+        Page<Series> seriesPage = seriesRepository.findAll(pageable);
+
+        return seriesPage.map(this::convertToSeriesDetailResponse);
+    }
+
+
+    // helper: 시리즈의 정보를 묶어서 응답 DTO 반환
+    private SeriesDetailResponse convertToSeriesDetailResponse(Series series) {
+        Long seriesId = series.getSeriesId();
+
+        // 1. 작가 정보
         List<Long> authorIds = seriesAuthorRepository.findAuthorIdsBySeriesId(seriesId);
         List<Author> authors = authorRepository.findAllById(authorIds);
         List<AuthorDTO> authorDTOs = authors.stream()
                 .map(author -> new AuthorDTO(author.getAuthorId(), author.getName()))
                 .toList();
 
-        // 3. 장르
+        // 2. 장르 정보
         List<String> genreNames = seriesGenreRepository.findGenreNamesBySeriesId(seriesId);
 
-
+        // 3. 응답 DTO 구성
         return new SeriesDetailResponse(
-                series.getSeriesId(),
+                seriesId,
                 series.getTitle(),
                 authorDTOs,
                 genreNames,
                 series.getImage(),
                 series.getPublisher()
         );
-
-
     }
+
 }
+
+

@@ -58,7 +58,7 @@ public class JwtTokenProvider {
     }
 
     public String getUserEmail(String token) {
-        return getClaims(token).getSubject();
+        return getClaims(token).get("email", String.class);
     }
 
     private Claims getClaims(String token) {

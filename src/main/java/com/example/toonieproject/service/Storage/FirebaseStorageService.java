@@ -47,4 +47,17 @@ public class FirebaseStorageService {
         return String.format("https://storage.googleapis.com/%s/%s", firebaseProperties.getBucketName(), filename);
     }
 
+    public void deleteImage(String filename) {
+        BlobId blobId = BlobId.of(firebaseProperties.getBucketName(), filename);
+        storage.delete(blobId);
+    }
+
+    // GCS 공개 URL에서 filename 추출
+    public String extractFilenameFromUrl(String imageUrl) {
+        if (imageUrl == null || !imageUrl.contains("/")) {
+            throw new IllegalArgumentException("유효하지 않은 이미지 URL입니다.");
+        }
+        return imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+    }
+
 }

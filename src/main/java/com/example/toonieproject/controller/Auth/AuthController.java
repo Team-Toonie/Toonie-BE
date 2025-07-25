@@ -27,20 +27,20 @@ public class AuthController {
     }
 
     @PostMapping("/callback/google") // 로그인
-    public ResponseEntity<?> googleAuthCallback(@RequestBody GoogleAuthRequest request) {
+    public ResponseEntity<TokenResponse> googleAuthCallback(@RequestBody GoogleAuthRequest request) {
 
-        CallbackResponse callbackResponse = authService.loginWithGoogle(request.getCode(), request.getCodeVerifier());
-        return ResponseEntity.ok(callbackResponse);
+        TokenResponse tokenResponse = authService.loginWithGoogle(request.getCode(), request.getCodeVerifier());
+        return ResponseEntity.ok(tokenResponse);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<TokenResponse> registerUser(@RequestBody RegisterUserRequest request) {
+    @PostMapping("/register/detail-user")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<TokenResponse> registerDetailUser(@RequestBody RegisterDetailUserRequest request) {
 
         TokenResponse tokenResponse = authService.registerUser(request);
         return ResponseEntity.ok(tokenResponse);
     }
 
-    @PreAuthorize("isAuthenticated()")
     @PostMapping("token/refresh")
     public ResponseEntity<RefreshAccessTokenResponse> refreshAccessToken(@RequestBody RefreshAccessTokenRequest request) {
 
@@ -50,9 +50,9 @@ public class AuthController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String bearerToken) {
+    public ResponseEntity<String> logout() {
 
-        authService.logout(bearerToken);
+        authService.logout();
         return ResponseEntity.ok("로그아웃 되었습니다.");
     }
 

@@ -54,6 +54,51 @@ public class StoreTrie {
         node.isContainWord  = true; // 해당 노드가 하나의 완성된 단어임을 표시
     }
 
+    // 해당 가게와 관련된 노드를 모두 제거
+    @Transactional
+    public void deleteStore(Store store) {
+        String name = store.getName().replaceAll("\\s+", "");
+
+        for (int i = 0; i < name.length(); i++) {
+            deleteFromTrie(name.substring(i), store);
+        }
+    }
+
+    private void deleteFromTrie(String key, Store store) {
+        deleteRecursive(rootNode, key, 0, store);
+    }
+
+    // 재귀적으로 노드를 따라가며 해당 store 제거
+    private boolean deleteRecursive(Node current, String key, int index, Store targetStore) {
+        if (index == key.length()) {
+            // storeId가 같은 항목만 제거
+            current.stores.removeIf(store -> store.getId().equals(targetStore.getId()));
+            if (current.stores.isEmpty()) {
+                current.isContainWord = false;
+            }
+            return current.childNodes.isEmpty() && current.stores.isEmpty();
+        }
+
+        char ch = key.charAt(index);
+        Node next = current.childNodes.get(ch);
+        if (next == null) return false;
+
+        boolean shouldDeleteCurrentNode = deleteRecursive(next, key, index + 1, targetStore);
+
+        if (shouldDeleteCurrentNode) {
+            current.childNodes.remove(ch);
+            return current.childNodes.isEmpty() && current.stores.isEmpty();
+        }
+
+        return false;
+    }
+
+    @Transactional
+    public void updateStore(Store store) {
+        deleteStore(store);  // 기존 이름으로 등록된 정보 제거
+        insertStore(store);  // 새 정보 삽입
+    }
+
 
     public List<Store> searchStore(String query) {
 

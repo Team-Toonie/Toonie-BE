@@ -16,6 +16,7 @@ public class StoreFindBySeriesResponse {
     private Long storeId;
     private String storeName;
     private String address;
+    private String image;
     private BigDecimal lat;
     private BigDecimal lng;
     private double distance;

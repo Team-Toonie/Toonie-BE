@@ -6,9 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class RegisterUserRequest {
-    private String email;
-    private String name;
+public class RegisterDetailUserRequest {
     private String phoneNumber;
     private User.Role role; // OWNER 또는 CUSTOMER
     private String nickname;

@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
+
 @RequiredArgsConstructor
 @RestController
 public class BookController {
@@ -18,7 +20,7 @@ public class BookController {
 
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/books/add")
-    public ResponseEntity<String> addBook(@RequestBody AddBookRequest request) {
+    public ResponseEntity<String> addBook(@RequestBody AddBookRequest request) throws AccessDeniedException {
 
         for (Integer num : request.getSeriesNum()) {
             AddSingleBookRequest singleRequest = new AddSingleBookRequest();
@@ -30,7 +32,7 @@ public class BookController {
             singleRequest.setIsRentable(request.getIsRentable());
             singleRequest.setAgeLimit(request.getAgeLimit());
 
-            bookService.add(singleRequest, request.getStoreId());
+            bookService.add(singleRequest);
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body("book created successfully");

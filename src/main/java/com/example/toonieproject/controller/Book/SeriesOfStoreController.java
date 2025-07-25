@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
+
 @RequiredArgsConstructor
 @RestController
 public class SeriesOfStoreController {
@@ -20,7 +22,7 @@ public class SeriesOfStoreController {
     @PostMapping("/stores/{storeId}/series/{seriesId}")
     public ResponseEntity<String> addSeriesOfStore(@RequestBody AddSeriesOfStoreRequest request,
                                                    @PathVariable long storeId,
-                                                   @PathVariable long seriesId) {
+                                                   @PathVariable long seriesId) throws AccessDeniedException {
 
         seriesOfStoreService.add(request, storeId, seriesId);
 

@@ -1,5 +1,6 @@
 package com.example.toonieproject.config.Jwt;
 
+import com.example.toonieproject.dto.Auth.TokenUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,7 +53,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                         Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
 
                 // 4. Authentication 객체 생성
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                TokenUserDetails userDetails = new TokenUserDetails(userId, email, role);
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 // 5. SecurityContext에 등록

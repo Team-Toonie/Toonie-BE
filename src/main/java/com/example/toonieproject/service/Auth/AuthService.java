@@ -7,6 +7,8 @@ import com.example.toonieproject.entity.Auth.RefreshToken;
 import com.example.toonieproject.entity.Auth.User;
 import com.example.toonieproject.repository.Auth.RefreshTokenRepository;
 import com.example.toonieproject.repository.Auth.UserRepository;
+import com.example.toonieproject.util.auth.SecurityUtil;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +36,7 @@ public class AuthService {
 
 
 
-    public CallbackResponse loginWithGoogle(String code, String codeVerifier) {
+    public TokenResponse loginWithGoogle(String code, String codeVerifier) {
 
         // 1. 인가 코드 -> 구글 토큰 요청
         GoogleTokenResponse tokenResponse = getTokenFromGoogle(URLDecoder.decode(code, StandardCharsets.UTF_8), codeVerifier);
@@ -53,63 +56,81 @@ public class AuthService {
             // 4-1.기존 회원이면 → 리프레시 토큰 저장 → JWT 반환
             User user = optionalUser.get();
 
-            // DB에 RefreshToken 저장/업데이트
-            refreshTokenRepository.save(new RefreshToken(user.getId(), googleRefreshToken));
-
             String jwtAccessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
             String jwtRefreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
 
-            return new CallbackResponse(true, jwtAccessToken, jwtRefreshToken, null, null);
+            // DB에 RefreshToken 저장/업데이트
+            refreshTokenRepository.save(new RefreshToken(user.getId(), jwtRefreshToken));
 
+            return new TokenResponse(jwtAccessToken, jwtRefreshToken, user.getRole());
         } else {
-            // 4-2. 신규 회원이면 → 회원가입 정보 프론트로 전달 (JWT 발급 X)
-            return new CallbackResponse(false, null, null, email, name);
+            // 4-2. 신규 회원이면 → 임시 회원 가입
+
+            // 새로운 User 객체 생성 (최초 INSERT)
+            User user = new User();
+            user.setEmail(email);
+            user.setName(name);
+            user.setRole(User.Role.valueOf("TEMPUSER"));
+
+            // 저장
+            userRepository.save(user);
+
+            // JWT 발급
+            String accessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
+            String refreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
+
+            // RefreshToken 저장
+            refreshTokenRepository.save(new RefreshToken(user.getId(), refreshToken));
+
+            return new TokenResponse(accessToken, refreshToken, User.Role.valueOf("TEMPUSER"));
         }
     }
 
 
-    public TokenResponse registerUser(RegisterUserRequest request) {
+    public TokenResponse registerUser(RegisterDetailUserRequest request) {
 
-        // 이미 회원이면 예외 처리
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 가입된 사용자입니다.");
-        }
+        // jwt에서 email추출
+        String email = SecurityUtil.getCurrentUserEmail();
+        System.out.println("email: " + email);
 
-        // 1. 새로운 User 객체 생성 (최초 INSERT)
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setName(request.getName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        // user 정보 설정
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
         user.setRole(request.getRole());
         user.setNickname(request.getNickname());
+        user.setPhoneNumber(request.getPhoneNumber());
 
-        // 2. 저장
+        // 저장
         userRepository.save(user);
 
-        // 3. JWT 발급
+        // JWT 발급
         String accessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
         String refreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
 
-        // 4. RefreshToken 저장
+        // RefreshToken 저장
+        refreshTokenRepository.deleteByUserId(user.getId());
         refreshTokenRepository.save(new RefreshToken(user.getId(), refreshToken));
 
-        return new TokenResponse(accessToken, refreshToken);
+
+        return new TokenResponse(accessToken, refreshToken, request.getRole());
     }
 
 
     public RefreshAccessTokenResponse refreshAccessToken(String refreshToken) {
         // 1. JWT 유효성 검사
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."); // 401
         }
 
+        System.out.println("refresh token: " + refreshToken);
         // 2. DB에 저장된 refreshToken과 비교
         RefreshToken savedToken = refreshTokenRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException("저장된 리프레시 토큰이 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "리프레시 토큰이 존재하지 않습니다.")); // 404
 
         // 3. 해당 userId로 사용자 조회
         User user = userRepository.findById(savedToken.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다.")); // 404
 
         // 4. 새로운 accessToken 발급
         return new RefreshAccessTokenResponse(jwtTokenProvider.generateToken(user, Duration.ofMinutes(30)));
@@ -117,12 +138,11 @@ public class AuthService {
 
 
     @Transactional
-    public void logout(String bearerToken) {
-        String accessToken = bearerToken.replace("Bearer ", "");
-        Long userId = jwtTokenProvider.getUserId(accessToken);
+    public void logout() {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
 
         // 리프레시 토큰 삭제
-        refreshTokenRepository.deleteByUserId(userId);
+        refreshTokenRepository.deleteByUserId(currentUserId);
     }
 
     /*
