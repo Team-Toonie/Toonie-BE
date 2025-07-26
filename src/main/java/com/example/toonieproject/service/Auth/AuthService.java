@@ -120,17 +120,16 @@ public class AuthService {
     public RefreshAccessTokenResponse refreshAccessToken(String refreshToken) {
         // 1. JWT 유효성 검사
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."); // 401
+            throw new IllegalArgumentException("Invalid Token");
         }
 
-        System.out.println("refresh token: " + refreshToken);
         // 2. DB에 저장된 refreshToken과 비교
         RefreshToken savedToken = refreshTokenRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "리프레시 토큰이 존재하지 않습니다.")); // 404
+                .orElseThrow(() -> new EntityNotFoundException("Refresh Token not found"));
 
         // 3. 해당 userId로 사용자 조회
         User user = userRepository.findById(savedToken.getUserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다.")); // 404
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         // 4. 새로운 accessToken 발급
         return new RefreshAccessTokenResponse(jwtTokenProvider.generateToken(user, Duration.ofMinutes(30)));

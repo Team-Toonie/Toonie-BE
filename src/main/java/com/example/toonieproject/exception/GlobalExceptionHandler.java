@@ -1,0 +1,104 @@
+package com.example.toonieproject.exception;
+
+import com.example.toonieproject.dto.Error.ErrorCode;
+import com.example.toonieproject.dto.Error.ErrorResponse;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    /**
+     * 400 Bad Request - 사용자 잘못된 요청
+     */
+    @ExceptionHandler({IllegalArgumentException.class, MethodArgumentNotValidException.class})
+    public ResponseEntity<ErrorResponse> handleBadRequest(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(
+                        HttpStatus.BAD_REQUEST.value(),
+                        ex.getMessage(),
+                        ErrorCode.BAD_REQUEST
+                ));
+    }
+
+    /**
+     * 401/403 인증 또는 인가 실패
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(ResponseStatusException ex) {
+        HttpStatus status = (HttpStatus) ex.getStatusCode();
+        ErrorCode code = switch (status) {
+            case UNAUTHORIZED -> ErrorCode.INVALID_TOKEN;
+            case FORBIDDEN -> ErrorCode.ACCESS_DENIED;
+            default -> null;
+        };
+
+        if (code != null) {
+            return ResponseEntity.status(status)
+                    .body(new ErrorResponse(status.value(), ex.getReason(), code));
+        }
+
+        // 그 외 ResponseStatusException은 서버 오류로 처리
+        return handleServerError(ex);
+    }
+
+    /**
+     * 404 Not Found - 리소스 없음
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(EntityNotFoundException ex) {
+        String message = ex.getMessage();
+        ErrorCode code;
+
+        if (message.contains("User")) {
+            code = ErrorCode.USER_NOT_FOUND;
+        } else if (message.contains("Store")) {
+            code = ErrorCode.STORE_NOT_FOUND;
+        } else if (message.contains("Series")) {
+            code = ErrorCode.SERIES_NOT_FOUND;
+        } else if (message.contains("Refresh")) {
+            code = ErrorCode.REFRESH_TOKEN_NOT_FOUND;
+        } else {
+            code = ErrorCode.ENTITY_NOT_FOUND;
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(
+                        HttpStatus.NOT_FOUND.value(),
+                        message,
+                        code
+                ));
+    }
+
+    /**
+     * 500 Internal Server Error - 시스템 예외
+     */
+
+    @ExceptionHandler(org.springframework.dao.DataAccessException.class)
+    public ResponseEntity<ErrorResponse> handleDatabaseError(DataAccessException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "데이터베이스 오류가 발생했습니다.",
+                        ErrorCode.DATABASE_ERROR
+                ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleServerError(Exception ex) {
+        ex.printStackTrace(); // 서버 로그 출력
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "서버 내부 오류가 발생했습니다.",
+                        ErrorCode.INTERNAL_SERVER_ERROR
+                ));
+    }
+}
+
