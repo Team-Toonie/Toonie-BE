@@ -30,9 +30,6 @@ public class AddStoreRequest {
     @Size(max = 255)
     private String representUrl; // 대표 URL (선택 사항)
 
-    @NotNull
-    private Boolean isOpen; // 영업 상태
-
     @Size(max = 500)
     private String info; // 추가 정보 (선택 사항)
 

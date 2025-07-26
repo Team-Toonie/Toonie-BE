@@ -17,7 +17,6 @@ public class StoreViewResponse {
     private String storeName;
     private String phoneNumber;
     private String representUrl;
-    private Boolean isOpen;
     private String info;
     private String image;
 

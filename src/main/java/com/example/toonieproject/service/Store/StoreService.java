@@ -52,7 +52,6 @@ public class StoreService {
         store.setUser(user);
         store.setRepresentUrl(request.getRepresentUrl());
         store.setPhoneNumber(request.getPhoneNumber());
-        store.setIsOpen(request.getIsOpen());
         store.setInfo(request.getInfo());
 
         // 이미지 링크로 변환 후 저장
@@ -209,7 +208,6 @@ public class StoreService {
                 .storeName(store.getName())
                 .phoneNumber(store.getPhoneNumber())
                 .representUrl(store.getRepresentUrl())
-                .isOpen(store.getIsOpen())
                 .info(store.getInfo())
                 .image(store.getImage())
                 .address(address.getAddress())
