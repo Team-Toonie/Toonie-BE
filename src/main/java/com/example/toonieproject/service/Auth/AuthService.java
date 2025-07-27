@@ -118,6 +118,8 @@ public class AuthService {
 
 
     public RefreshAccessTokenResponse refreshAccessToken(String refreshToken) {
+        System.out.println("refresh token request: " + refreshToken);
+
         // 1. JWT 유효성 검사
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new IllegalArgumentException("Invalid Token");
