@@ -1,6 +1,9 @@
 package com.example.toonieproject.config.Jwt;
 
 import com.example.toonieproject.dto.Auth.TokenUserDetails;
+import com.example.toonieproject.dto.Error.ErrorCode;
+import com.example.toonieproject.dto.Error.ErrorResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +46,15 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
             // 유효성 검사 실패 → 직접 예외 던지기
             if (!jwtTokenProvider.validateToken(token)) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않거나 만료된 토큰입니다.");
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.setContentType("application/json");
+                ErrorResponse error = new ErrorResponse(
+                        HttpStatus.UNAUTHORIZED.value(),
+                        "유효하지 않거나 만료된 토큰입니다.",
+                        ErrorCode.INVALID_TOKEN
+                );
+                new ObjectMapper().writeValue(response.getWriter(), error);
+                return;
             }
 
             // 2. 유저 정보 추출
