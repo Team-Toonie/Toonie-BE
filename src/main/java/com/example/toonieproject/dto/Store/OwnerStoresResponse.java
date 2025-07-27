@@ -14,5 +14,6 @@ public class OwnerStoresResponse {
     private Long storeId;
     private String storeName;
     private String address;
+    private String iamge;
 
 }

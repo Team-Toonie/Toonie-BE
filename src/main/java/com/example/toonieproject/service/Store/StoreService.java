@@ -191,7 +191,7 @@ public class StoreService {
             String address = (addressOfStore != null) ? addressOfStore.getAddress() : "주소 없음";
 
             // DTO 생성 후 리스트에 추가
-            responseList.add(new OwnerStoresResponse(store.getId(), store.getName(), address));
+            responseList.add(new OwnerStoresResponse(store.getId(), store.getName(), address, store.getImage()));
         }
 
         return responseList;
