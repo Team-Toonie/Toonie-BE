@@ -14,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Service
@@ -34,7 +36,7 @@ public class FirebaseStorageService {
     }
 
     public String uploadImage(MultipartFile file) throws IOException {
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String filename = file.getOriginalFilename();
 
         BlobId blobId = BlobId.of(firebaseProperties.getBucketName(), filename);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
@@ -43,8 +45,13 @@ public class FirebaseStorageService {
 
         storage.create(blobInfo, file.getBytes());
 
-        // GCS의 공개 URL (Firebase의 Storage에서 사용)
-        return String.format("https://storage.googleapis.com/%s/%s", firebaseProperties.getBucketName(), filename);
+        String encodedFileName = URLEncoder.encode(filename, StandardCharsets.UTF_8.toString());
+        String imageUrl = "https://firebasestorage.googleapis.com/v0/b/"
+                + firebaseProperties.getBucketName()
+                + "/o/" + encodedFileName
+                + "?alt=media";
+
+        return imageUrl;
     }
 
     public void deleteImage(String filename) {
