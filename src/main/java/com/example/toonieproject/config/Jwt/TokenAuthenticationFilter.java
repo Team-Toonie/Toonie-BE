@@ -39,6 +39,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        String requestURI = request.getRequestURI();
+        // 인증 제외할 경로
+        if (requestURI.startsWith("/auth/refresh") || requestURI.startsWith("/auth/login")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authorizationHeader = request.getHeader(HEADER_AUTHORIZATION);
 
         if (authorizationHeader != null && authorizationHeader.startsWith(TOKEN_PREFIX)) {
@@ -47,7 +54,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             // 유효성 검사 실패 → 직접 예외 던지기
             if (!jwtTokenProvider.validateToken(token)) {
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.setContentType("application/json");
+                response.setContentType("application/json; charset=UTF-8");
                 ErrorResponse error = new ErrorResponse(
                         HttpStatus.UNAUTHORIZED.value(),
                         "유효하지 않거나 만료된 토큰입니다.",
