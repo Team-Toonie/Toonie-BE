@@ -35,7 +35,7 @@ dependencies {
 	implementation 'org.projectlombok:lombok'
 
 	// SpringDoc OpenAPI 3 (Swagger UI)
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
 
 	implementation 'org.springframework.boot:spring-boot-starter-security'
