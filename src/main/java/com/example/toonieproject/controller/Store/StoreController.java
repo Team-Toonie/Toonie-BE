@@ -55,7 +55,7 @@ public class StoreController {
     }
 
     @PreAuthorize("hasRole('OWNER')")
-    @PutMapping(value = "/update/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/update/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateStore(
             @PathVariable Long storeId,
 

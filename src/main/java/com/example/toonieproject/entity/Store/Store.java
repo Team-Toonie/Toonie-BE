@@ -34,7 +34,7 @@ public class Store {
     @Column(name = "info", nullable = true)
     private String info;
 
-    @Column(name = "image")
+    @Column(name = "image", nullable = true)
     private String image;
 
 
