@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -59,12 +60,22 @@ public class FirebaseStorageService {
         storage.delete(blobId);
     }
 
-    // GCS 공개 URL에서 filename 추출
+    // URL에서 filename 추출
     public String extractFilenameFromUrl(String imageUrl) {
-        if (imageUrl == null || !imageUrl.contains("/")) {
+        if (imageUrl == null || !imageUrl.contains("/o/")) {
             throw new IllegalArgumentException("유효하지 않은 이미지 URL입니다.");
         }
-        return imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+
+        // "https://.../o/파일명?alt=media" → 파일명만 추출
+        String[] parts = imageUrl.split("/o/");
+        String encodedFilenameWithParams = parts[1];
+        int endIndex = encodedFilenameWithParams.indexOf('?');
+        if (endIndex != -1) {
+            encodedFilenameWithParams = encodedFilenameWithParams.substring(0, endIndex);
+        }
+
+        // 인코딩 되어있는 파일명을 디코딩해서 GCS가 인식 가능한 원래 파일명으로 복원
+        return URLDecoder.decode(encodedFilenameWithParams, StandardCharsets.UTF_8);
     }
 
 }
