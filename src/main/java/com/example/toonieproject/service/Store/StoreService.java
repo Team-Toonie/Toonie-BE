@@ -111,7 +111,7 @@ public class StoreService {
         String oldImageUrl = store.getImage();
         String oldFileName = firebaseStorageService.extractFilenameFromUrl(oldImageUrl);
         firebaseStorageService.deleteImage(oldFileName);
-
+        store.setImage(null);
 
         if (imageFile != null && !imageFile.isEmpty()) {
 
