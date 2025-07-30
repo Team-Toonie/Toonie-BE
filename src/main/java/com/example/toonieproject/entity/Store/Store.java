@@ -28,7 +28,7 @@ public class Store {
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 소유자 (외래키)
 
-    @Column(name = "represent_url", length = 255)
+    @Column(name = "represent_url", length = 1000)
     private String representUrl; // 대표 URL
 
     @Column(name = "info", nullable = true)
