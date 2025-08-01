@@ -107,6 +107,14 @@ public class SeriesService {
         return seriesOfStorePage.map(seriesOfStore -> convertToSeriesDetailResponse(seriesOfStore.getSeries()));
     }
 
+    // 해당 store가 보유 안 한 series 목록 조회
+    public List<SeriesDetailResponse> getSeriesNotInStore(Long storeId) {
+        List<Series> seriesList = seriesRepository.findSeriesNotInStore(storeId);
+        return seriesList.stream()
+                .map(this::convertToSeriesDetailResponse)
+                .toList();
+    }
+
     // 모든 시리즈 반환
     public Page<SeriesDetailResponse> getSeriesAll(Pageable pageable) {
         Page<Series> seriesPage = seriesRepository.findAll(pageable);

@@ -84,6 +84,17 @@ public class SeriesController {
 
     }
 
+    // 가게가 보유 안 한 시리즈 목록
+    @GetMapping("/stores/{storeId}/not-owned")
+    public ResponseEntity<List<SeriesDetailResponse>> getSeriesNotInStore(
+            @PathVariable Long storeId) {
+
+        List<SeriesDetailResponse> result = seriesService.getSeriesNotInStore(storeId);
+
+        return ResponseEntity.ok(result);
+
+    }
+
     @GetMapping("/all")
     public ResponseEntity<Page<SeriesDetailResponse>> getSeriesAll(
             @RequestParam(defaultValue = "0") int page,
