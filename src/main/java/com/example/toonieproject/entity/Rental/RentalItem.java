@@ -20,9 +20,9 @@ public class RentalItem {
 
     private Long bookId;
 
-    private int price;
-
     // 스냅샷 정보
+    private int price;
     private String bookTitle;
+    private Integer bookNum;
     private String bookImageUrl;
 }

@@ -24,6 +24,7 @@ public class BookService {
     private final BookRepository bookRepository;
     private final SeriesRepository seriesRepository;
     private final StoreRepository storeRepository;
+    private final SeriesOfStoreService seriesOfStoreService;
 
 
     public void add(AddSingleBookRequest addSingleBookRequest) throws AccessDeniedException {
@@ -44,7 +45,6 @@ public class BookService {
         store = storeRepository.findById(addSingleBookRequest.getStoreId())
                 .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + addSingleBookRequest.getStoreId()));
 
-
         Book book = new Book();
         book.setSeries(series);
         book.setStore(store);
@@ -54,6 +54,7 @@ public class BookService {
         book.setAgeLimit(addSingleBookRequest.getAgeLimit());
 
         bookRepository.save(book);
+        seriesOfStoreService.updateVolumeByBook(book.getStore().getId(), book.getSeries().getSeriesId());
     }
 
     public SingleBookDetailResponse getBookDetail(Long bookId) {

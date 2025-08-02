@@ -24,6 +24,11 @@ public class Rental {
     @Enumerated(EnumType.STRING)
     private RentalStatus rentalStatus;
 
+    @Column(name = "scheduled_rent_date")
+    private LocalDateTime scheduledRentDate;
+    @Column(name = "scheduled_return_date")
+    private LocalDateTime scheduledReturnDate;
+
     private LocalDateTime reservedAt;
     private LocalDateTime canceledAt;
     private LocalDateTime rentedAt;

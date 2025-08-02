@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
 
+    int countByStoreIdAndSeries_SeriesId(Long storeId, Long seriesId);
 
 
 }

@@ -12,7 +12,7 @@ public class AddSeriesOfStoreRequest {
     private Long storedId;
     @Min(value = 1)
     private Integer maxOfRentalPeriod;
-    @Min(value = 0)
-    private Integer volume; // 보유 중인 권 수
+    // @Min(value = 0)
+    // private Integer volume; // 보유 중인 권 수
 
 }
