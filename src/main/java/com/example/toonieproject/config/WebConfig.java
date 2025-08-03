@@ -1,5 +1,6 @@
 package com.example.toonieproject.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -13,6 +14,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final OctetStreamReadMsgConverter octetStreamReadMsgConverter;
 
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
+
     public WebConfig(OctetStreamReadMsgConverter octetStreamReadMsgConverter) {
         this.octetStreamReadMsgConverter = octetStreamReadMsgConverter;
     }
@@ -20,7 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://localhost:8443", "http://localhost:5173", "http://toonie-fe.s3-website.us-east-2.amazonaws.com")
+                .allowedOrigins(allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "DELETE") // 최소한의 HTTP 메서드 허용
                 .allowedHeaders("*")
                 .allowCredentials(true) // 쿠키 인증 허용

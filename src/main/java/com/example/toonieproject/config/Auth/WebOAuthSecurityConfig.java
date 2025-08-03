@@ -3,6 +3,7 @@ package com.example.toonieproject.config.Auth;
 import com.example.toonieproject.config.Jwt.JwtTokenProvider;
 import com.example.toonieproject.config.Jwt.TokenAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,9 @@ import java.util.List;
 public class WebOAuthSecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -66,11 +70,10 @@ public class WebOAuthSecurityConfig {
         return new TokenAuthenticationFilter(jwtTokenProvider);
     }
 
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "https://localhost:8443", "http://toonie-fe.s3-website.us-east-2.amazonaws.com"));
+        config.setAllowedOrigins(List.of(allowedOrigins));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
