@@ -9,7 +9,7 @@ import lombok.*;
 public class AddSeriesOfStoreRequest {
 
     private Long seriesId;
-    private Long storedId;
+    private Long storeId;
     @Min(value = 1)
     private Integer maxOfRentalPeriod;
     // @Min(value = 0)
