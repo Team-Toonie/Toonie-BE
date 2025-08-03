@@ -41,7 +41,7 @@ public class RentalService {
                 .userName(request.getUserName())
                 .userPhone(request.getUserPhone())
                 .reservedAt(LocalDateTime.now())
-                .rentalStatus(Rental.RentalStatus.예약_중)
+                .rentalStatus(Rental.RentalStatus.RESERVED)
                 .build();
 
         rentalRepository.save(rental);
@@ -139,11 +139,11 @@ public class RentalService {
 
         // user id 검증
 
-        if (rental.getRentalStatus() != Rental.RentalStatus.예약_중) {
+        if (rental.getRentalStatus() != Rental.RentalStatus.RESERVED) {
             throw new IllegalStateException("이미 대여가 시작되었거나 취소된 예약은 취소할 수 없습니다.");
         }
 
-        rental.setRentalStatus(Rental.RentalStatus.예약_취소);
+        rental.setRentalStatus(Rental.RentalStatus.CANCELED);
         rental.setCanceledAt(LocalDateTime.now());
     }
 

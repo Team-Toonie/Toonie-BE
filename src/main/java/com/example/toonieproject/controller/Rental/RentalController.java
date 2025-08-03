@@ -5,6 +5,7 @@ import com.example.toonieproject.dto.Rental.Reservation.RentalByUserIdResponse;
 import com.example.toonieproject.service.Rental.RentalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -28,9 +29,16 @@ public class RentalController {
     @GetMapping("/user/{userId}/lists")
     public ResponseEntity<Page<RentalByUserIdResponse>> getAllUserRentals(
             @PathVariable Long userId,
-            @PageableDefault(size = 10, sort = "reservedAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(page = 0, size = 10) Pageable pageable
     ) {
-        Page<RentalByUserIdResponse> result = rentalService.getReservationsByUserId(userId, pageable);
+
+        Pageable fixedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "reservedAt")
+        );
+
+        Page<RentalByUserIdResponse> result = rentalService.getReservationsByUserId(userId, fixedPageable);
         return ResponseEntity.ok(result);
     }
 

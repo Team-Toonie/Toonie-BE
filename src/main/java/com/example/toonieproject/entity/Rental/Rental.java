@@ -22,6 +22,7 @@ public class Rental {
     private Long storeId;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "rental_status", nullable = false)
     private RentalStatus rentalStatus;
 
     @Column(name = "scheduled_rent_date")
@@ -43,9 +44,9 @@ public class Rental {
     private String userPhone;
 
     public enum RentalStatus {
-        예약_중,
-        예약_취소,
-        대여_중,
-        반납_완료
+        RESERVED,
+        CANCELED,
+        RENTED,
+        RETURNED
     }
 }
