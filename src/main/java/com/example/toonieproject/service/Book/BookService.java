@@ -3,12 +3,14 @@ package com.example.toonieproject.service.Book;
 
 import com.example.toonieproject.dto.Book.AddBookRequest;
 import com.example.toonieproject.dto.Book.AddSingleBookRequest;
+import com.example.toonieproject.dto.Book.BookWithCartStatusResponse;
 import com.example.toonieproject.dto.Book.SingleBookDetailResponse;
 import com.example.toonieproject.entity.Book.Book;
 import com.example.toonieproject.entity.Book.Series;
 import com.example.toonieproject.entity.Store.Store;
 import com.example.toonieproject.repository.Book.BookRepository;
 import com.example.toonieproject.repository.Book.SeriesRepository;
+import com.example.toonieproject.repository.Rental.CartRepository;
 import com.example.toonieproject.repository.Store.StoreRepository;
 import com.example.toonieproject.util.auth.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
@@ -25,6 +29,7 @@ public class BookService {
     private final SeriesRepository seriesRepository;
     private final StoreRepository storeRepository;
     private final SeriesOfStoreService seriesOfStoreService;
+    private final CartRepository cartRepository;
 
 
     public void add(AddSingleBookRequest addSingleBookRequest) throws AccessDeniedException {
@@ -65,6 +70,29 @@ public class BookService {
         ));
 
         return new SingleBookDetailResponse(result);
+    }
+
+
+    public List<BookWithCartStatusResponse> getBooksWithCartStatus(Long seriesId, Long storeId, Long userId) throws AccessDeniedException {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        // ownerId 검증
+        if (!Objects.equals(userId, currentUserId)){
+            throw new AccessDeniedException("You do not have permission.");
+        }
+
+        List<Book> books = bookRepository.findBySeries_SeriesIdAndStore_Id(seriesId, storeId);
+        List<Long> userCartBookIds = cartRepository.findBookIdsByUserId(userId);
+
+        return books.stream()
+                .map(book -> BookWithCartStatusResponse.builder()
+                        .bookId(book.getId())
+                        .seriesNum(book.getSeriesNum())
+                        .rentalPrice(book.getRentalPrice())
+                        .isRentable(book.getIsRentable())
+                        .ageLimit(book.getAgeLimit())
+                        .inCart(userCartBookIds.contains(book.getId()))
+                        .build())
+                .toList();
     }
 
 

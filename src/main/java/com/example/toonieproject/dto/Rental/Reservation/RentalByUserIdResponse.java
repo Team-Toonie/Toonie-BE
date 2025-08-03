@@ -16,6 +16,7 @@ import java.util.List;
 public class RentalByUserIdResponse {
         private Long rentalId;
 
+        private boolean storeExists;
         private String storeName;
         private String userName;
         private String userPhone;
@@ -29,4 +30,6 @@ public class RentalByUserIdResponse {
         private Rental.RentalStatus rentalStatus;
 
         private List<RentalItemDto> books;
+
+        private boolean overdue; // true면 연체
 }

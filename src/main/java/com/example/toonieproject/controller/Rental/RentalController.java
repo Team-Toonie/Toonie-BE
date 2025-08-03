@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/rental")
@@ -21,7 +23,7 @@ public class RentalController {
     private final RentalService rentalService;
 
     @PostMapping("/create")
-    public ResponseEntity<String> createRental(@RequestBody AddRentalRequest request) {
+    public ResponseEntity<String> createRental(@RequestBody AddRentalRequest request) throws AccessDeniedException {
         rentalService.createRental(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("대여 예약이 생성되었습니다.");
     }
@@ -30,7 +32,7 @@ public class RentalController {
     public ResponseEntity<Page<RentalByUserIdResponse>> getAllUserRentals(
             @PathVariable Long userId,
             @PageableDefault(page = 0, size = 10) Pageable pageable
-    ) {
+    ) throws AccessDeniedException {
 
         Pageable fixedPageable = PageRequest.of(
                 pageable.getPageNumber(),
@@ -43,13 +45,13 @@ public class RentalController {
     }
 
     @GetMapping("/{rentalId}")
-    public ResponseEntity<RentalByUserIdResponse> getRentalDetail(@PathVariable Long rentalId) {
+    public ResponseEntity<RentalByUserIdResponse> getRentalDetail(@PathVariable Long rentalId) throws AccessDeniedException {
         RentalByUserIdResponse response = rentalService.getRentalDetailById(rentalId);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{rentalId}/cancel")
-    public ResponseEntity<String> cancelRental(@PathVariable Long rentalId) {
+    public ResponseEntity<String> cancelRental(@PathVariable Long rentalId) throws AccessDeniedException {
         rentalService.cancelRentalByUser(rentalId);
         return ResponseEntity.ok("예약이 취소되었습니다.");
     }

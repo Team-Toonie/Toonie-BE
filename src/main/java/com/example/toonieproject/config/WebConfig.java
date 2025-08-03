@@ -20,7 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://localhost:8443", "http://localhost:5173")
+                .allowedOrigins("https://localhost:8443", "http://localhost:5173", "http://toonie-fe.s3-website.us-east-2.amazonaws.com")
                 .allowedMethods("GET", "POST", "PUT", "DELETE") // 최소한의 HTTP 메서드 허용
                 .allowedHeaders("*")
                 .allowCredentials(true) // 쿠키 인증 허용
