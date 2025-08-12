@@ -19,12 +19,10 @@ public class SeriesOfStoreController {
     private final SeriesOfStoreService seriesOfStoreService;
 
     @PreAuthorize("hasRole('OWNER')")
-    @PostMapping("/stores/{storeId}/series/{seriesId}")
-    public ResponseEntity<String> addSeriesOfStore(@RequestBody AddSeriesOfStoreRequest request,
-                                                   @PathVariable long storeId,
-                                                   @PathVariable long seriesId) throws AccessDeniedException {
+    @PostMapping("/stores/series")
+    public ResponseEntity<String> addSeriesOfStore(@RequestBody AddSeriesOfStoreRequest request) throws AccessDeniedException {
 
-        seriesOfStoreService.add(request, storeId, seriesId);
+        seriesOfStoreService.add(request);
 
 
         return ResponseEntity.status(HttpStatus.CREATED).body("seriesOfStore created successfully");

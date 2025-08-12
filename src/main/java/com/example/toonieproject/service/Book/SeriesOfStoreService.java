@@ -29,12 +29,12 @@ public class SeriesOfStoreService {
 
 
 
-    public void add(AddSeriesOfStoreRequest request, long storeId, long seriesId) throws AccessDeniedException {
+    public void add(AddSeriesOfStoreRequest request) throws AccessDeniedException {
 
         Long currentUserId = SecurityUtil.getCurrentUserId();
 
         // storeId로 Store 가져오기
-        Store store = storeRepository.findById(storeId)
+        Store store = storeRepository.findById(request.getStoreId())
                 .orElseThrow(() -> new EntityNotFoundException("Store not found"));
 
         // ownerId 검증
@@ -44,13 +44,13 @@ public class SeriesOfStoreService {
 
 
         // 1. 시리즈와 가게 엔티티 조회
-        Series series = seriesRepository.findById(seriesId)
-                .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + seriesId));
-        store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + storeId));
+        Series series = seriesRepository.findById(request.getSeriesId())
+                .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + request.getSeriesId()));
+        store = storeRepository.findById(request.getStoreId())
+                .orElseThrow(() -> new EntityNotFoundException("Series not found with id: " + request.getStoreId()));
 
         // 2. 복합 키 생성
-        SeriesOfStoreId seriesOfStoreId = new SeriesOfStoreId(seriesId, storeId);
+        SeriesOfStoreId seriesOfStoreId = new SeriesOfStoreId(request.getSeriesId(), request.getStoreId());
         SeriesOfStore seriesOfStore = new SeriesOfStore();
 
         // 엔티티 생성 및 저장
@@ -58,7 +58,7 @@ public class SeriesOfStoreService {
         seriesOfStore.setSeries(series);
         seriesOfStore.setStore(store);
         seriesOfStore.setMaxOfRentalPeriod(request.getMaxOfRentalPeriod());
-        //seriesOfStore.setVolume(request.getVolume());
+        seriesOfStore.setVolume(0);
 
         seriesOfStoreRepository.save(seriesOfStore);
 
