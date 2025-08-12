@@ -46,7 +46,15 @@ public class MapService {
     public List<StoreMapResponse> findStoresInBounds(BigDecimal minLat, BigDecimal maxLat, BigDecimal minLng, BigDecimal maxLng) {
         List<Store> stores = storeRepository.findStoresInBounds(minLat, maxLat, minLng, maxLng);
         return stores.stream()
-                .map(store -> new StoreMapResponse(store.getId(), store.getAddressInfo().getLat(), store.getAddressInfo().getLng()))
+                .map(store -> new StoreMapResponse(
+                        store.getId(),
+                        store.getAddressInfo().getLat(),
+                        store.getAddressInfo().getLng(),
+                        store.getName(),
+                        store.getAddressInfo().getAddress(),
+                        store.getAddressInfo().getDetailedAddress(),
+                        store.getImage()
+                ))
                 .collect(Collectors.toList());
     }
 
