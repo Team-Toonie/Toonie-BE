@@ -18,7 +18,7 @@ public class StoreMapResponse {
     private BigDecimal lat;
     private BigDecimal lng;
 
-    private String name;
+    private String storeName;
     private String address;
     private String detailed_address;
     private String image;

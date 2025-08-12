@@ -1,7 +1,6 @@
 package com.example.toonieproject.dto.Book;
 
 import com.example.toonieproject.entity.Book.Book;
-import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data // getter, setter, toString, equals, hashCode 자동 생성.
 public class SingleBookDetailResponse {
 
-    private Long id;
+    private Long bookId;
 
     private Long seriesId;
 
@@ -26,7 +25,7 @@ public class SingleBookDetailResponse {
     private Integer ageLimit;
 
     public SingleBookDetailResponse(Book book) {
-        this.id = book.getId();
+        this.bookId = book.getId();
         this.seriesId = book.getSeries().getSeriesId();
         this.storeId = book.getStore().getId();
         this.rentalPrice = book.getRentalPrice();

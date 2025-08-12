@@ -46,7 +46,7 @@ public class StoreService {
         // 1. 가게 정보 저장
         Store store = new Store();
 
-        store.setName(request.getName());
+        store.setName(request.getStoreName());
         User user = userRepository.findById(currentUserId) // 현재 로그인 한 사용자의 id로 생성
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found with id: " + currentUserId));
         store.setUser(user);
@@ -100,7 +100,7 @@ public class StoreService {
         }
 
         // 3. 값 수정
-        store.setName(request.getName());
+        store.setName(request.getStoreName());
         store.setRepresentUrl(request.getRepresentUrl());
         store.setPhoneNumber(request.getPhoneNumber());
         store.setInfo(request.getInfo());

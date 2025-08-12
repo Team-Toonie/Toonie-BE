@@ -19,7 +19,7 @@ public class updateStoreRequest {
 
     @NotBlank
     @Size(max = 100)
-    private String name; // 가게 이름
+    private String storeName; // 가게 이름
 
     @NotBlank
     @Size(max = 15)

@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class SeriesDetailResponse {
 
-    private Long id;
+    private Long seriesId;
     private String title;
     private List<AuthorDTO> author;
     private List<String> genre;
