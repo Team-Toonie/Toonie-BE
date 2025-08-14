@@ -3,6 +3,7 @@ package com.example.toonieproject.exception;
 import com.example.toonieproject.dto.Error.ErrorCode;
 import com.example.toonieproject.dto.Error.ErrorResponse;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,12 +14,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
      * 400 Bad Request - 사용자 잘못된 요청
      */
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     @ExceptionHandler({IllegalArgumentException.class, MethodArgumentNotValidException.class})
     public ResponseEntity<ErrorResponse> handleBadRequest(Exception ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -62,6 +68,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse(
                         HttpStatus.FORBIDDEN.value(),
@@ -75,6 +82,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(EntityNotFoundException ex) {
+        ex.printStackTrace();
+
         String message = ex.getMessage();
         ErrorCode code;
 
@@ -104,6 +113,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(org.springframework.dao.DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDatabaseError(DataAccessException ex) {
+        ex.printStackTrace(); // 서버 로그 출력
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse(
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),

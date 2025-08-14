@@ -50,11 +50,17 @@ public class RentalController {
         return ResponseEntity.ok(response);
     }
 
+    // 예약 취소처리하기
     @PatchMapping("/{rentalId}/cancel")
     public ResponseEntity<String> cancelRental(@PathVariable Long rentalId) throws AccessDeniedException {
         rentalService.cancelRentalByUser(rentalId);
         return ResponseEntity.ok("예약이 취소되었습니다.");
     }
+
+    // 대여중으로 바꾸기
+
+
+    // 반납 완료로 바꾸기
 
 
 
