@@ -4,6 +4,7 @@ import com.example.toonieproject.dto.Auth.UpdateUserRequest;
 import com.example.toonieproject.entity.Auth.User;
 import com.example.toonieproject.repository.Auth.RefreshTokenRepository;
 import com.example.toonieproject.repository.Auth.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -50,5 +51,11 @@ public class UserService {
 
         // save()는 생략 가능 — JPA의 변경 감지(Dirty Checking)로 자동 반영됨
     }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
+    }
+
 
 }

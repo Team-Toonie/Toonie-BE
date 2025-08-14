@@ -48,6 +48,12 @@ public class UserController {
         return ResponseEntity.ok("회원 정보가 수정되었습니다.");
     }
 
+    @PreAuthorize("hasRole('OWNER')")
+    @GetMapping("/search")
+    public ResponseEntity<Long> getUserIdByEmail(@RequestParam String email) {
+        User user = userService.findByEmail(email);
+        return ResponseEntity.ok(user.getId());
+    }
 
 
 
