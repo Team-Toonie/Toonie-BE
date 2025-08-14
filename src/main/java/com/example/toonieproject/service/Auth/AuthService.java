@@ -87,6 +87,7 @@ public class AuthService {
     }
 
 
+    @Transactional
     public TokenResponse registerUser(RegisterDetailUserRequest request) {
 
         // jwt에서 email추출
@@ -104,12 +105,13 @@ public class AuthService {
         // 저장
         userRepository.save(user);
 
+        // 기존의 RefreshToken 삭제
+        refreshTokenRepository.deleteByUserId(user.getId());
+
         // JWT 발급
         String accessToken = jwtTokenProvider.generateToken(user, Duration.ofMinutes(30));
         String refreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
 
-        // RefreshToken 저장
-        refreshTokenRepository.deleteByUserId(user.getId());
         refreshTokenRepository.save(new RefreshToken(user.getId(), refreshToken));
 
 
