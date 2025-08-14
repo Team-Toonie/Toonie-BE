@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class NoticeResponse {
 
-    Long id;
+    Long noticeId;
     String title;
     String content;
     Long storeId;

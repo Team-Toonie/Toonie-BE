@@ -1,9 +1,6 @@
 package com.example.toonieproject.controller.Book;
 
-import com.example.toonieproject.dto.Book.AddBookRequest;
-import com.example.toonieproject.dto.Book.AddSingleBookRequest;
-import com.example.toonieproject.dto.Book.BookWithCartStatusResponse;
-import com.example.toonieproject.dto.Book.SingleBookDetailResponse;
+import com.example.toonieproject.dto.Book.*;
 import com.example.toonieproject.service.Book.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -57,6 +54,16 @@ public class BookController {
     ) throws AccessDeniedException {
         List<BookWithCartStatusResponse> result =
                 bookService.getBooksWithCartStatus(seriesId, storeId, userId);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/series/{seriesId}/store/{storeId}")
+    public ResponseEntity<List<BookWithoutCartStatusResponse>> getBooksForGuest(
+            @PathVariable Long seriesId,
+            @PathVariable Long storeId
+    ) {
+        List<BookWithoutCartStatusResponse> result =
+                bookService.getBooksWithoutCartStatus(seriesId, storeId);
         return ResponseEntity.ok(result);
     }
 

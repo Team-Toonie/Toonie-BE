@@ -1,10 +1,7 @@
 package com.example.toonieproject.service.Book;
 
 
-import com.example.toonieproject.dto.Book.AddBookRequest;
-import com.example.toonieproject.dto.Book.AddSingleBookRequest;
-import com.example.toonieproject.dto.Book.BookWithCartStatusResponse;
-import com.example.toonieproject.dto.Book.SingleBookDetailResponse;
+import com.example.toonieproject.dto.Book.*;
 import com.example.toonieproject.entity.Book.Book;
 import com.example.toonieproject.entity.Book.Series;
 import com.example.toonieproject.entity.Store.Store;
@@ -91,6 +88,22 @@ public class BookService {
                         .isRentable(book.getIsRentable())
                         .ageLimit(book.getAgeLimit())
                         .inCart(userCartBookIds.contains(book.getId()))
+                        .build())
+                .toList();
+    }
+
+
+    public List<BookWithoutCartStatusResponse> getBooksWithoutCartStatus(Long seriesId, Long storeId) {
+        List<Book> books = bookRepository.findBySeries_SeriesIdAndStore_Id(seriesId, storeId);
+
+        return books.stream()
+                .map(book -> BookWithoutCartStatusResponse.builder()
+                        .bookId(book.getId())
+                        .seriesNum(book.getSeriesNum())
+                        .rentalPrice(book.getRentalPrice())
+                        .isRentable(book.getIsRentable())
+                        .ageLimit(book.getAgeLimit())
+                        //.inCart(null)  // 비로그인 사용자는 inCart 정보 없음
                         .build())
                 .toList();
     }
