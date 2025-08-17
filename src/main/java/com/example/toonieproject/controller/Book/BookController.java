@@ -45,7 +45,7 @@ public class BookController {
         return ResponseEntity.ok(bookService.getBookDetail(bookId));
     }
 
-
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/series/{seriesId}/store/{storeId}/user/{userId}")
     public ResponseEntity<List<BookWithCartStatusResponse>> getBooksWithCartStatus(
             @PathVariable Long seriesId,

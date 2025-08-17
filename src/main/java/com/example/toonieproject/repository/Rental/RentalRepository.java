@@ -19,5 +19,7 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
 
     Page<Rental> findByUserIdOrderByReservedAtDesc(Long userId, Pageable pageable);
 
+    Page<Rental> findByRentalIdIn(List<Long> rentalIds, Pageable pageable);
+
 
 }

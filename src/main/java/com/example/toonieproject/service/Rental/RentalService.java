@@ -1,18 +1,20 @@
 package com.example.toonieproject.service.Rental;
 
 import com.example.toonieproject.dto.Rental.Reservation.AddRentalRequest;
+import com.example.toonieproject.dto.Rental.Reservation.RentalByBookIdResponse;
 import com.example.toonieproject.dto.Rental.Reservation.RentalItemDto;
 import com.example.toonieproject.dto.Rental.Reservation.RentalByUserIdResponse;
 import com.example.toonieproject.entity.Book.Book;
 import com.example.toonieproject.entity.Book.Series;
 import com.example.toonieproject.entity.Rental.Rental;
 import com.example.toonieproject.entity.Rental.RentalItem;
+import com.example.toonieproject.entity.Store.Store;
 import com.example.toonieproject.repository.Book.BookRepository;
 import com.example.toonieproject.repository.Rental.RentalItemRepository;
 import com.example.toonieproject.repository.Rental.RentalRepository;
 import com.example.toonieproject.repository.Store.StoreRepository;
 import com.example.toonieproject.util.auth.SecurityUtil;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,9 +38,24 @@ public class RentalService {
     @Transactional
     public void createRental(AddRentalRequest request) throws AccessDeniedException {
         Long currentUserId = SecurityUtil.getCurrentUserId();
-        // ownerId 검증
-        if (!Objects.equals(request.getUserId(), currentUserId)){
-            throw new AccessDeniedException("You do not have permission.");
+        String currentUserRole = SecurityUtil.getCurrentUserRole();
+
+        // 인가 검증
+        if ("CUSTOMER".equals(currentUserRole)) {
+            // 일반 사용자: 자기 userId만 예약 가능
+            if (!Objects.equals(request.getUserId(), currentUserId)) {
+                throw new AccessDeniedException("You do not have permission to make a reservation.");
+            }
+        } else if ("OWNER".equals(currentUserRole)) {
+            // 점주: 자기 가게에 대해서만 예약 생성 가능
+            Store store = storeRepository.findById(request.getStoreId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 storeId가 존재하지 않습니다."));
+
+            if (!Objects.equals(store.getUser().getId(), currentUserId)) {
+                throw new AccessDeniedException("You do not have permission to manage this store.");
+            }
+        } else {
+            throw new AccessDeniedException("Invalid role.");
         }
 
 
@@ -128,6 +146,44 @@ public class RentalService {
     }
 
 
+    @Transactional(readOnly = true)
+    public Page<RentalByBookIdResponse> getRentalHistoryByBookId(Long bookId, Pageable pageable) throws AccessDeniedException {
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 bookId가 존재하지 않습니다."));
+
+        // 가게 소유주 확인
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        Store store = book.getStore();
+        if (!Objects.equals(store.getUser().getId(), currentUserId)) {
+            throw new AccessDeniedException("해당 가게에 대한 접근 권한이 없습니다.");
+        }
+
+        // rental_item에서 rentalId 모음
+        List<Long> rentalIds = rentalItemRepository.findByBookId(bookId).stream()
+                .map(RentalItem::getRentalId)
+                .distinct()
+                .toList();
+
+        // rentalId 기준 페이징
+        Page<Rental> rentals = rentalRepository.findByRentalIdIn(rentalIds, pageable);
+
+        return rentals.map(rental -> RentalByBookIdResponse.builder()
+                .rentalId(rental.getRentalId())
+                .userName(rental.getUserName())
+                .reservedAt(rental.getReservedAt())
+                .rentedAt(rental.getRentedAt())
+                .returnedAt(rental.getReturnedAt())
+                .rentalStatus(rental.getRentalStatus())
+                .overdue(rental.getRentalStatus() == Rental.RentalStatus.RENTED &&
+                        rental.getDueDate() != null &&
+                        rental.getDueDate().isBefore(LocalDateTime.now()))
+                .build());
+    }
+
+
+
     public RentalByUserIdResponse getRentalDetailById(Long rentalId) throws AccessDeniedException {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 rentalId가 존재하지 않습니다: " + rentalId));
@@ -176,17 +232,34 @@ public class RentalService {
     }
 
 
+    // 렌탈 상태 변경
+
     @Transactional
     public void cancelRentalByUser(Long rentalId) throws AccessDeniedException {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 rentalId가 존재하지 않습니다: " + rentalId));
 
-        // user id 검증
         Long currentUserId = SecurityUtil.getCurrentUserId();
-        // ownerId 검증
-        if (!Objects.equals(rental.getUserId(), currentUserId)){
-            throw new AccessDeniedException("You do not have permission.");
+        String currentUserRole = SecurityUtil.getCurrentUserRole();
+
+        // 인가 검증
+        if ("CUSTOMER".equals(currentUserRole)) {
+            // 일반 사용자: 자기 userId만 예약 취소 가능
+            if (!Objects.equals(rental.getUserId(), currentUserId)) {
+                throw new AccessDeniedException("You do not have permission to make a reservation.");
+            }
+        } else if ("OWNER".equals(currentUserRole)) {
+            // 점주: 자기 가게에 대해서만 예약 취소 가능
+            Store store = storeRepository.findById(rental.getStoreId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 storeId가 존재하지 않습니다."));
+
+            if (!Objects.equals(store.getUser().getId(), currentUserId)) {
+                throw new AccessDeniedException("You do not have permission to manage this store.");
+            }
+        } else {
+            throw new AccessDeniedException("Invalid role.");
         }
+
 
 
         if (rental.getRentalStatus() != Rental.RentalStatus.RESERVED) {
@@ -203,6 +276,67 @@ public class RentalService {
             book.setIsRentable(true);  // 다시 대여 가능으로
         }
     }
+
+    @Transactional
+    public void startRental(Long rentalId) throws AccessDeniedException {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 rentalId가 존재하지 않습니다."));
+
+        // 권한 검증
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        Store store = storeRepository.findById(rental.getStoreId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 storeId가 존재하지 않습니다."));
+
+        if (!Objects.equals(store.getUser().getId(), currentUserId)){
+            throw new AccessDeniedException("You do not have permission.");
+        }
+
+        if (rental.getRentalStatus() != Rental.RentalStatus.RESERVED) {
+            throw new IllegalStateException("예약 상태가 아니면 대여를 시작할 수 없습니다.");
+        }
+
+        // 상태 전환
+        rental.setRentalStatus(Rental.RentalStatus.RENTED);
+        rental.setRentedAt(LocalDateTime.now());
+
+        // 책들 대여 불가 처리
+        List<RentalItem> items = rentalItemRepository.findByRentalId(rentalId);
+        for (RentalItem item : items) {
+            Book book = bookRepository.findById(item.getBookId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 도서를 찾을 수 없습니다."));
+            book.setIsRentable(false);
+        }
+    }
+
+    @Transactional
+    public void completeReturn(Long rentalId) throws AccessDeniedException {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 rentalId가 존재하지 않습니다."));
+
+        // 권한 검증
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        Store store = storeRepository.findById(rental.getStoreId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 storeId가 존재하지 않습니다."));
+
+        if (!Objects.equals(store.getUser().getId(), currentUserId)){
+            throw new AccessDeniedException("You do not have permission.");
+        }
+
+        rental.setRentalStatus(Rental.RentalStatus.RETURNED);
+        rental.setReturnedAt(LocalDateTime.now());
+
+        // 책들 대여 가능 상태로 되돌림
+        List<RentalItem> items = rentalItemRepository.findByRentalId(rentalId);
+        for (RentalItem item : items) {
+            Book book = bookRepository.findById(item.getBookId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 도서를 찾을 수 없습니다."));
+            book.setIsRentable(true);
+        }
+    }
+
+
+
+
 
 
 
