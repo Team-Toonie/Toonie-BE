@@ -3,7 +3,7 @@ package com.example.toonieproject.service.Rental;
 import com.example.toonieproject.dto.Rental.Reservation.AddRentalRequest;
 import com.example.toonieproject.dto.Rental.Reservation.RentalByBookIdResponse;
 import com.example.toonieproject.dto.Rental.Reservation.RentalItemDto;
-import com.example.toonieproject.dto.Rental.Reservation.RentalByUserIdResponse;
+import com.example.toonieproject.dto.Rental.Reservation.RentalDetailResponse;
 import com.example.toonieproject.entity.Book.Book;
 import com.example.toonieproject.entity.Book.Series;
 import com.example.toonieproject.entity.Rental.Rental;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -98,7 +97,7 @@ public class RentalService {
     }
 
 
-    public Page<RentalByUserIdResponse> getReservationsByUserId(Long userId, Pageable pageable) throws AccessDeniedException {
+    public Page<RentalDetailResponse> getRentalHistoryByUserId(Long userId, Pageable pageable) throws AccessDeniedException {
         Long currentUserId = SecurityUtil.getCurrentUserId();
         // ownerId 검증
         if (!Objects.equals(userId, currentUserId)){
@@ -127,7 +126,7 @@ public class RentalService {
                 isOverdue = rental.getDueDate().isBefore(LocalDateTime.now());
             }
 
-            return RentalByUserIdResponse.builder()
+            return RentalDetailResponse.builder()
                     .rentalId(rental.getRentalId())
                     .storeExists(storeExists)
                     .storeName(rental.getStoreName())
@@ -183,17 +182,83 @@ public class RentalService {
     }
 
 
+    @Transactional(readOnly = true)
+    public Page<RentalDetailResponse> getRentalHistoryByStoreId(Long storeId, Pageable pageable) throws AccessDeniedException {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
 
-    public RentalByUserIdResponse getRentalDetailById(Long rentalId) throws AccessDeniedException {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 storeId가 존재하지 않습니다."));
+
+        if (!Objects.equals(store.getUser().getId(), currentUserId)) {
+            throw new AccessDeniedException("해당 가게에 대한 접근 권한이 없습니다.");
+        }
+
+        Page<Rental> rentals = rentalRepository.findByStoreId(storeId, pageable);
+
+        return rentals.map(rental -> {
+            List<RentalItem> items = rentalItemRepository.findByRentalId(rental.getRentalId());
+
+            List<RentalItemDto> bookDtos = items.stream()
+                    .map(item -> RentalItemDto.builder()
+                            .bookId(item.getBookId())
+                            .bookTitle(item.getBookTitle())
+                            .bookImageUrl(item.getBookImageUrl())
+                            .bookNum(item.getBookNum())
+                            .price(item.getPrice())
+                            .build())
+                    .toList();
+
+            boolean storeExists = storeRepository.existsById(rental.getStoreId());
+            boolean isOverdue = rental.getRentalStatus() == Rental.RentalStatus.RENTED &&
+                    rental.getDueDate() != null &&
+                    rental.getDueDate().isBefore(LocalDateTime.now());
+
+            return RentalDetailResponse.builder()
+                    .rentalId(rental.getRentalId())
+                    .storeExists(storeExists)
+                    .storeName(rental.getStoreName())
+                    .userName(rental.getUserName())
+                    .userPhone(rental.getUserPhone())
+                    .scheduledRentDate(rental.getScheduledRentDate())
+                    .scheduledReturnDate(rental.getScheduledReturnDate())
+                    .dueDate(rental.getDueDate())
+                    .reservedAt(rental.getReservedAt())
+                    .totalPrice(rental.getTotalPrice())
+                    .rentalStatus(rental.getRentalStatus())
+                    .books(bookDtos)
+                    .overdue(isOverdue)
+                    .build();
+        });
+    }
+
+
+
+
+    public RentalDetailResponse getRentalDetailById(Long rentalId) throws AccessDeniedException {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 rentalId가 존재하지 않습니다: " + rentalId));
 
-        // 회원아이디 일치하는지 검증
         Long currentUserId = SecurityUtil.getCurrentUserId();
-        // ownerId 검증
-        if (!Objects.equals(rental.getUserId(), currentUserId)){
-            throw new AccessDeniedException("You do not have permission.");
+        String currentUserRole = SecurityUtil.getCurrentUserRole();
+
+        // 인가 검증
+        if ("CUSTOMER".equals(currentUserRole)) {
+            // 일반 사용자: 자기 userId만 예약 가능
+            if (!Objects.equals(rental.getUserId(), currentUserId)) {
+                throw new AccessDeniedException("You do not have permission to make a reservation.");
+            }
+        } else if ("OWNER".equals(currentUserRole)) {
+            // 점주: 자기 가게에 대해서만 예약 생성 가능
+            Store store = storeRepository.findById(rental.getStoreId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 storeId가 존재하지 않습니다."));
+
+            if (!Objects.equals(store.getUser().getId(), currentUserId)) {
+                throw new AccessDeniedException("You do not have permission to manage this store.");
+            }
+        } else {
+            throw new AccessDeniedException("Invalid role.");
         }
+
 
 
         List<RentalItem> items = rentalItemRepository.findByRentalId(rentalId);
@@ -214,7 +279,7 @@ public class RentalService {
             isOverdue = rental.getDueDate().isBefore(LocalDateTime.now());
         }
 
-        return RentalByUserIdResponse.builder()
+        return RentalDetailResponse.builder()
                 .rentalId(rental.getRentalId())
                 .storeExists(storeExists)
                 .storeName(rental.getStoreName())

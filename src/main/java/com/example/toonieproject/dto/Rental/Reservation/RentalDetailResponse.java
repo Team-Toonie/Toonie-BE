@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class RentalByUserIdResponse {
+public class RentalDetailResponse {
         private Long rentalId;
 
         private boolean storeExists;

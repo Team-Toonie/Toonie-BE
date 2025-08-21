@@ -21,5 +21,8 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
 
     Page<Rental> findByRentalIdIn(List<Long> rentalIds, Pageable pageable);
 
+    Page<Rental> findByStoreId(Long storeId, Pageable pageable);
+
+
 
 }

@@ -2,7 +2,7 @@ package com.example.toonieproject.controller.Rental;
 
 import com.example.toonieproject.dto.Rental.Reservation.AddRentalRequest;
 import com.example.toonieproject.dto.Rental.Reservation.RentalByBookIdResponse;
-import com.example.toonieproject.dto.Rental.Reservation.RentalByUserIdResponse;
+import com.example.toonieproject.dto.Rental.Reservation.RentalDetailResponse;
 import com.example.toonieproject.service.Rental.RentalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,7 +33,7 @@ public class RentalController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/user/{userId}/lists")
-    public ResponseEntity<Page<RentalByUserIdResponse>> getAllUserRentals(
+    public ResponseEntity<Page<RentalDetailResponse>> getAllUserRentals(
             @PathVariable Long userId,
             @PageableDefault(page = 0, size = 10) Pageable pageable
     ) throws AccessDeniedException {
@@ -45,7 +44,7 @@ public class RentalController {
                 Sort.by(Sort.Direction.DESC, "reservedAt")
         );
 
-        Page<RentalByUserIdResponse> result = rentalService.getReservationsByUserId(userId, fixedPageable);
+        Page<RentalDetailResponse> result = rentalService.getRentalHistoryByUserId(userId, fixedPageable);
         return ResponseEntity.ok(result);
     }
 
@@ -67,6 +66,31 @@ public class RentalController {
         return ResponseEntity.ok(responses);
     }
 
+
+    @PreAuthorize("hasRole('OWNER')")
+    @GetMapping("/store/{storeId}/lists")
+    public ResponseEntity<Page<RentalDetailResponse>> getRentalHistoryByStoreId(
+            @PathVariable Long storeId,
+            @PageableDefault(size = 10) Pageable pageable
+    ) throws AccessDeniedException {
+
+        Pageable fixedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "reservedAt")
+        );
+
+        Page<RentalDetailResponse> responses = rentalService.getRentalHistoryByStoreId(storeId, fixedPageable);
+        return ResponseEntity.ok(responses);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{rentalId}")
+    public ResponseEntity<RentalDetailResponse> getRentalDetail(@PathVariable Long rentalId) throws AccessDeniedException {
+        RentalDetailResponse response = rentalService.getRentalDetailById(rentalId);
+        return ResponseEntity.ok(response);
+    }
+
     // 예약 취소처리하기
     @PreAuthorize("isAuthenticated()")
     @PatchMapping("/{rentalId}/cancel")
@@ -84,7 +108,7 @@ public class RentalController {
     }
 
 
-    // 반납 완료로 바꾸렌
+    // 반납 완료로 바꾸기
     @PreAuthorize("hasRole('OWNER')")
     @PatchMapping("/{rentalId}/return")
     public ResponseEntity<String> completeReturn(@PathVariable Long rentalId) throws AccessDeniedException {
